@@ -1,0 +1,28 @@
+Akka Logging - DONE!
+============
+http://doc.akka.io/docs/akka/2.0/scala/logging.html
+
+
+Akka Persistence
+=================
+
+Actor Controller that starts actor that sends notification - DONE!
+==========================================================
+
+
+Notification System
+====================
+That works for actors that are dormant
+http://doc.akka.io/docs/akka/2.4.1/java/distributed-pub-sub.html
+
+ElasticSearch Scala Driver
+===========================
+https://github.com/sksamuel/elastic4s
+
+Akka Persistence ElasticSearch plugin:
+https://github.com/nilsga/akka-persistence-elasticsearch
+
+
+Html->pdf Framework
+====================
+https://github.com/cloudify/sPDF
