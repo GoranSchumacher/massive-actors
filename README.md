@@ -8,4 +8,4 @@ URLs
 http://localhost:9000/url/apple.com/1
 localhost:9000/urlget/apple.com
 
-Read purpose [here](bit.ly/1VGYkqfbit.ly/1V)
+Read purpose [here](http://bit.ly/1VGYkqfbit.ly/1V)
