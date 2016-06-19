@@ -46,22 +46,24 @@ class URLPersistentActor extends BasePersistentAutoShutdownActor {
     // This is the way to use Akkas broadcast message, sending message through a topic
     // It is not used by MyWebsocketActor
     if(updatedEvent.dataLength != state.event.dataLength) {
+      // Only called if the length has changed.
       mediator ! Publish(topic, ChatMessage("1", s"updateState called for actor ${context.self.path.name}, Value different: ${updatedEvent.dataLength}"))
     }
     mediator ! Publish(topic, ChatMessage("1", s"updateState called for actor ${context.self.path.name}, Value: ${updatedEvent.dataLength}"))
 
-    // Here we notify listening actors
+    // Here we set the timer for driving the repetiotion.
     if(!notifyEnabled) {
       System.out.println(s"schedule: repeat:  ${updatedEvent.repeat.get} URL: ${updatedEvent.url}")
       context.system.scheduler.schedule(updatedEvent.repeat.get, updatedEvent.repeat.get, self, updatedEvent)
       notifyEnabled = true
     }
+    // Here we notify listening actors
     notifySubscribers(URLPersistentLookupActor.TOPIC_SUBSCRIPTION_LENGTH, (s"Notify. Url: ${updatedEvent.url}, Size: ${updatedEvent.dataLength} OldSize: ${state.event.dataLength}"))
 
     // Here we set the new state
     state = MyState(updatedEvent)
 
-    // Persist url to Elastic search
+    // Persist url and content to Elastic search
     persistElasticsearch()
   }
 
