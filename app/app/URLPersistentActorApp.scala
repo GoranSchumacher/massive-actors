@@ -1,5 +1,6 @@
 package app
 
+import actors.massive.stringtest.StringTestPersistentLookupActor
 import actors.massive.url.{URLPersistentLookupActor, Url}
 import akka.actor.{ActorSystem, Props}
 import akka.util.Timeout
