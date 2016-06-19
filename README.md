@@ -29,6 +29,8 @@ Apps
     
     Test Akka Persistence through MongoDB.
     
+    Creates an actor that at given intervals downloads content of an url. If the length of the content has changed the actor notifies listeners through Akka Pub/sub and own pub/sub interface.
+    
     Test notification through Akka Pub/Sub as well as through our own pub/sub interface.
     
     Also test persisting through ElasticSearch with Elastic4s (without Akka Persistence)
