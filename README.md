@@ -17,6 +17,7 @@ Apps
 * StockPersistentActorApp
     
     Tests the functionality of BaseLookupActor & BaseAutoShutdownActor
+    
     Create a LookupActor for your entity by subclassing BaseLookupActor.
     
     Find and instantiate entity actors.
@@ -34,7 +35,7 @@ Apps
     
 * ESTest
     
-    Test ElasticSerach integration through Elastic4s.
+    Test ElasticSearch integration through Elastic4s.
     
 * DeadLetterTest
     
