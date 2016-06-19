@@ -1,8 +1,10 @@
 package app
 
+import actors.EchoActor
+import actors.massive.base.ShutDownTime
 import actors.massive.stringtest.StringTestPersistentLookupActor
 import actors.massive.url.{URLPersistentLookupActor, Url}
-import akka.actor.{ActorSystem, Props}
+import akka.actor.{DeadLetter, ActorSystem, Props}
 import akka.util.Timeout
 
 import scala.concurrent.duration.FiniteDuration
@@ -20,7 +22,16 @@ object URLPersistentActorApp extends App{
   //lazy val lookupActor = system.actorOf(Props[StringTestPersistentLookupActor], "StringTestPersistentLookupActor")
   lazy val lookupActor = system.actorOf(Props[URLPersistentLookupActor], "URLPersistentLookupActor")
   import scala.concurrent.duration._
-  val url = Url("Apple", "http://apple.com", Some(10 seconds))
+
+  /////////// Start Deadletter Watcher
+  val deadLettersSubscriber = system.actorOf(Props[EchoActor], name = "dead-letters-subscriber")
+  val echoActor = system.actorOf(Props[EchoActor], name = "generic-echo-actor")
+
+  system.eventStream.subscribe(deadLettersSubscriber, classOf[DeadLetter])
+  /////////////////////////////////
+
+  lookupActor ! ShutDownTime("Apple", 10 seconds)
+  val url = Url("Apple", "http://apple.com", Some(1 minute))
   lookupActor ! url
 
 }

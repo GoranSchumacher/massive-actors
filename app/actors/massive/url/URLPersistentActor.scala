@@ -51,7 +51,7 @@ class URLPersistentActor extends BasePersistentAutoShutdownActor {
     }
     mediator ! Publish(topic, ChatMessage("1", s"updateState called for actor ${context.self.path.name}, Value: ${updatedEvent.dataLength}"))
 
-    // Here we set the timer for driving the repetiotion.
+    // Here we set the timer for driving the repetition.
     if(!notifyEnabled) {
       System.out.println(s"schedule: repeat:  ${updatedEvent.repeat.get} URL: ${updatedEvent.url}")
       context.system.scheduler.schedule(updatedEvent.repeat.get, updatedEvent.repeat.get, self, updatedEvent)
@@ -75,11 +75,14 @@ class URLPersistentActor extends BasePersistentAutoShutdownActor {
       index into "actor" / "URLPersistentActor" source state id state.event.name
     }.map { t =>
       log.debug("Persisted to Elastic: $t")
+    }.onFailure{
+      case t : Throwable => log.error(t, "Persisted to Elastic")
     }
   }
 
   override def aroundPreStart: Unit = {
     notifyEnabled = false
+    self ! ShutDownTime(context.self.path.name, 10 seconds )
   }
 
   override def aroundPostStop(): Unit = {

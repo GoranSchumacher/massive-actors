@@ -73,11 +73,11 @@ abstract class BaseLookupActor extends Actor with akka.actor.ActorLogging  {
       findOrCreateAndForward2Actor(fromFinder.actorRef, fromFinder.stockRef, fromFinder.originalSender)
     }
 
-    case stockRefReply : LookupActorNameWithReply => {
-      findOrCreateAndForwardActor(stockRefReply, sender)
+    case actorRefReply : LookupActorNameWithReply => {
+      findOrCreateAndForwardActor(actorRefReply, sender)
     }
-    case stockRef : LookupActorName => {
-      findOrCreateAndForwardActor(stockRef, sender)
+    case actorRef : LookupActorName => {
+      findOrCreateAndForwardActor(actorRef, sender)
     }
 
     case ActorReference(actorRef : ActorRef) => {
