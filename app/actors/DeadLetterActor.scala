@@ -8,16 +8,12 @@ import akka.persistence.SaveSnapshotSuccess
  * @author Gøran Schumacher (GS) / Schumacher Consulting Aps
  * @version $Revision$ 02/06/2016
  */
-class EchoActor extends Actor {
+class DeadLetterActor extends Actor {
 
   def receive = {
-//    case dead : DeadLetter if !dead.message.isInstanceOf[SaveSnapshotSuccess] => {
-//      println(s"ECHOING to ${dead.recipient} MESSAGE: ${dead.message}")
-//      dead.recipient ! dead.message
-//    }
     case dead : DeadLetter if dead.message.isInstanceOf[LookupActorName] => {
       println(s"ECHOING to ${dead.recipient.path.parent} MESSAGE: ${dead.message}")
-      context.actorSelection(dead.recipient.path.parent) ! dead.message
+      context.actorSelection(dead.recipient.path.parent).tell(dead.message, dead.sender)
     }
     case msg => println(s"DEAD LETTER RECEIVED FROM $sender Message: $msg")
   }

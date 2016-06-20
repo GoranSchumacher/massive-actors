@@ -1,6 +1,6 @@
 package app
 
-import actors.EchoActor
+import actors.DeadLetterActor
 import actors.massive.base.ShutDownTime
 import actors.massive.stringtest.StringTestPersistentLookupActor
 import actors.massive.url.{URLPersistentLookupActor, Url}
@@ -24,8 +24,8 @@ object URLPersistentActorApp extends App{
   import scala.concurrent.duration._
 
   /////////// Start Deadletter Watcher
-  val deadLettersSubscriber = system.actorOf(Props[EchoActor], name = "dead-letters-subscriber")
-  val echoActor = system.actorOf(Props[EchoActor], name = "generic-echo-actor")
+  val deadLettersSubscriber = system.actorOf(Props[DeadLetterActor], name = "dead-letters-subscriber")
+  val echoActor = system.actorOf(Props[DeadLetterActor], name = "generic-echo-actor")
 
   system.eventStream.subscribe(deadLettersSubscriber, classOf[DeadLetter])
   /////////////////////////////////

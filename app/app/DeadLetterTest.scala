@@ -1,6 +1,6 @@
 package app
 
-import actors.EchoActor
+import actors.DeadLetterActor
 import akka.actor.{PoisonPill, Props, DeadLetter, ActorSystem}
 import akka.util.Timeout
 
@@ -17,8 +17,8 @@ object DeadLetterTest  extends App{
   lazy val system = ActorSystem("example")
 
 
-  val deadLettersSubscriber = system.actorOf(Props[EchoActor], name = "dead-letters-subscriber")
-  val echoActor = system.actorOf(Props[EchoActor], name = "generic-echo-actor")
+  val deadLettersSubscriber = system.actorOf(Props[DeadLetterActor], name = "dead-letters-subscriber")
+  val echoActor = system.actorOf(Props[DeadLetterActor], name = "generic-echo-actor")
 
   system.eventStream.subscribe(deadLettersSubscriber, classOf[DeadLetter])
 

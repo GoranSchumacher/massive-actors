@@ -3,7 +3,7 @@ package app
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
-import actors.EchoActor
+import actors.DeadLetterActor
 import actors.massive.base.ShutDownTime
 import actors.massive.stock.{AddStock, GetStock, StockLookupActor}
 import actors.massive.stringtest.StringTestPersistentLookupActor
@@ -24,8 +24,8 @@ object StockPersistentActorApp extends App {
   lazy val system = ActorSystem("example")
   lazy val lookupActor = system.actorOf(Props[StockLookupActor], "StockLookupActor")
 
-  val deadLettersSubscriber = system.actorOf(Props[EchoActor], name = "dead-letters-subscriber")
-  val echoActor = system.actorOf(Props[EchoActor], name = "generic-echo-actor")
+  val deadLettersSubscriber = system.actorOf(Props[DeadLetterActor], name = "dead-letters-subscriber")
+  val echoActor = system.actorOf(Props[DeadLetterActor], name = "generic-echo-actor")
 
   system.eventStream.subscribe(deadLettersSubscriber, classOf[DeadLetter])
 
