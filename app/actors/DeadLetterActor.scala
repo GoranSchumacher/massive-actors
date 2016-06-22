@@ -15,7 +15,7 @@ class DeadLetterActor extends Actor {
       println(s"ECHOING to ${dead.recipient.path.parent} MESSAGE: ${dead.message}")
       context.actorSelection(dead.recipient.path.parent).tell(dead.message, dead.sender)
     }
-    case msg => println(s"DEAD LETTER RECEIVED FROM $sender Message: $msg")
+    //case msg => println(s"DEAD LETTER RECEIVED FROM $sender Message: $msg")
   }
 
 }
