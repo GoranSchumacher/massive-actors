@@ -45,3 +45,8 @@ Apps
     
     Purpose if this is to let the deadletter actor notify the lookupactor of messages that's been lost. The lookupactor will then instantiate the entity actor again and resend the message. This way the lookupactor will not have to keep track of the entityactors lifecycle.
     
+    
+* FactorialPersistentActorApp
+
+    Calculate fatorials ( 5! ). Each factor is calculated by one actor instance. The result is cached in the actor. Demoes using MongoDB Akka Persistence, event sourcing, communication between actors and lifetime handling.
+    
