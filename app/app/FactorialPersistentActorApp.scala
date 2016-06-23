@@ -1,11 +1,14 @@
 package app
 
 import actors.DeadLetterActor
-import actors.massive.base.ShutDownTime
+import actors.massive.base.{GetActorRef, LookupActorName, ShutDownTime}
 import actors.massive.factorial.{FactorialRequest, FactorialPersistentLookupActor}
 import actors.massive.url.{Url, URLPersistentLookupActor}
-import akka.actor.{DeadLetter, Props, ActorSystem}
+import akka.actor.{ActorRef, DeadLetter, Props, ActorSystem}
 import akka.util.Timeout
+import util.Timer.time
+
+import scala.concurrent.Future
 
 /**
  * @author Gøran Schumacher (GS) / Schumacher Consulting Aps
@@ -30,15 +33,28 @@ object FactorialPersistentActorApp extends App{
 
   import akka.pattern.ask
   import scala.concurrent.ExecutionContext.Implicits.global
-  util.Timer.time("10!") {
+  time("10!") {
     lookupActor.ask(FactorialRequest("10")).map(res => println(s"Answer is: $res"))
   }
 
-  util.Timer.time("20!") {
+  time("20!") {
     lookupActor.ask(FactorialRequest("20")).map(res => println(s"Answer is: $res"))
   }
 
-  util.Timer.time("40!") {
-    lookupActor.ask(FactorialRequest("40")).map(res => println(s"Answer is: $res"))
+
+  // Fetch an actor ref and ask directly
+  val ref : Future[ActorRef] = lookupActor.ask(GetActorRef("40")).mapTo[ActorRef]
+  ref.map{ actor: ActorRef =>
+    for(step <- 1 to 1000 ) {
+      time("40! Direkt") {
+        actor.ask(FactorialRequest("40")).map(x => println(x))
+      }
+      Thread.sleep(10000)
+    }
+  }
+
+  time("40!") {
+    lookupActor.ask(FactorialRequest("40"))
+      //.map(res => println(s"Answer is: $res"))
   }
 }

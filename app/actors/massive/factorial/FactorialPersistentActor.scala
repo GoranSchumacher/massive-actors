@@ -88,9 +88,14 @@ class FactorialPersistentActor(lookupActor : ActorRef) extends BasePersistentAut
   override val receiveCommand: Receive = super[BasePersistentAutoShutdownActor].receiveShutDown orElse {
     // Cmd and Event are the same class in the example
     case request : FactorialRequest =>
-      //System.out.println(s"Cmd: Request name:  $request.name")
-      persist(request) { event =>
-        updateState(event)
+      if(state.result.result.isDefined) {
+        // We already have a cached result => return it and do not persist this message.
+        sender() ! state.result
+      } else {
+        //System.out.println(s"Cmd: Request name:  $request.name")
+        persist(request) { event =>
+          updateState(event)
+        }
       }
     case response : FactorialResponse =>
       //System.out.println(s"Cmd: Response name:  $response.name")
