@@ -53,8 +53,18 @@ object FactorialPersistentActorApp extends App{
     }
   }
 
-  time("40!") {
-    lookupActor.ask(FactorialRequest("40"))
-      //.map(res => println(s"Answer is: $res"))
+  // Fetch an actor ref and ask directly
+  ref.map{ actor: ActorRef =>
+      time("40! Direkt 1.000 times") {
+        for(step <- 1 to 1000 ) {
+          actor.ask(FactorialRequest("40"))
+            //.map(x => println(x))
+        }
+      }
   }
+
+  time("40!") {
+    lookupActor.ask(FactorialRequest("40")).map(x => println(x))
+  }
+
 }
