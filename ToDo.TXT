@@ -3,19 +3,19 @@ Akka Logging - DONE!
 http://doc.akka.io/docs/akka/2.0/scala/logging.html
 
 
-Akka Persistence
+Akka Persistence - DONE!
 =================
 
 Actor Controller that starts actor that sends notification - DONE!
 ==========================================================
 
 
-Notification System
+Notification System - DONE!
 ====================
 That works for actors that are dormant
 http://doc.akka.io/docs/akka/2.4.1/java/distributed-pub-sub.html
 
-ElasticSearch Scala Driver
+ElasticSearch Scala Driver - DONE!
 ===========================
 https://github.com/sksamuel/elastic4s
 
@@ -25,4 +25,14 @@ https://github.com/nilsga/akka-persistence-elasticsearch
 
 Html->pdf Framework
 ====================
+Convert any html to pdf
+Implement as stateless actor.
 https://github.com/cloudify/sPDF
+
+
+Html Cleaner
+=============
+Use Htmlcleaner to convert relative links to absolute links,
+so the html can be used by PDF generator above
+Implement as stateless actor.
+http://htmlcleaner.sourceforge.net
