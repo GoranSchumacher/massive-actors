@@ -66,4 +66,4 @@ Apps
     
 * HTMLCleanerAndPDFGeneratorApp
 
-    Tests stateless actors with deployment configuration. Tests actor for cleaning html using HTMLCleaner fw and actor for converting html to pdf using cloudify/sPDF.
+    Tests stateless actors with deployment configuration. Tests actor for cleaning html using HTMLCleaner fw and actor for converting html to pdf.

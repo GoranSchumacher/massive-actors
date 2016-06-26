@@ -1,6 +1,7 @@
 package actors.stateless
 
 import java.net.URL
+import javassist.bytecode.ByteArray
 
 import actors.traits.{RouteSlipMessage, RouteSlip}
 import akka.actor.{ActorLogging, ActorRef, Actor}
@@ -12,7 +13,7 @@ import org.htmlcleaner._
  * @version $Revision$ 24/06/2016
  */
 
-case class HTMLCleanerURL(url: String, result: Option[String] = None)
+case class HTMLCleanerURL(url: String, result: Option[String] = None, byteArray: Option[Array[Byte]] = None)
 
 class HTMLCleanerActor extends Actor with RouteSlip with ActorLogging {
 

@@ -39,7 +39,6 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
 
   implicit val timeout = Timeout(30, TimeUnit.SECONDS)
 
-  //lazy val system2 = ActorSystem("example")
   lazy val lookupActor = system.actorOf(Props[StringTestPersistentLookupActor], "StringTestPersistentLookupActor")
 //  lazy val lookupActor = system.actorOf(Props[StockLookupActor], "StockLookupActor")
 
@@ -162,13 +161,10 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
     val aHTMLCleanerURL = HTMLCleanerURL(url)
     val routeSlipMessage = RouteSlipMessage(Seq(PDFRenderActor), aHTMLCleanerURL, true)
     import akka.pattern.ask
-    ask(HTMLCleanerActor, routeSlipMessage).map{case a:HTMLCleanerURL => Ok(a.result.get).as("application/pdf")}
-//    ask(HTMLCleanerActor, routeSlipMessage).map { case a: HTMLCleanerURL => {
-//      val i: ByteArrayOutputStream = new ByteArrayOutputStream()
-//      i.write(a.result.get.toByte)
-//      Ok(i).as("application/pdf")
-//    }
-//    }
+    ask(HTMLCleanerActor, routeSlipMessage).map{
+      case a:HTMLCleanerURL =>
+        Ok(a.byteArray.get).as("application/pdf")
+    }
   }
 
   def urlPDF(url : String) = Action.async { implicit request =>
@@ -189,13 +185,8 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
 
     val dbResponse: Future[Url] = future.map(_.as[actors.massive.url.MyState].apply(0).event)
     import akka.pattern.ask
-//
-//    dbResponse.map { case a: Url => println(s"Content: ${a.data}")
-//      Ok(a.data).as("text/html")
-//    }
-
     dbResponse.map{case a:Url=> ask(PDFRenderActor, HTMLCleanerURL(a.url, Some(a.data)))}.map{case a: HTMLCleanerURL =>
-      Ok(a.result.get).as("application/pdf")
+      Ok(a.byteArray.get).as("application/pdf")
     }
   }
 
