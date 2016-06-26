@@ -13,6 +13,7 @@ GET         /startActor                controllers.ActorController.startActor
 GET         /test                      controllers.ActorController.test
 GET         /url/:link/:minutes        controllers.ActorController.url(link, minutes : Long)
 GET         /urlget/:link              controllers.ActorController.urlGet(link)
+GET         /urlPDF/:link              controllers.ActorController.urlPDF(link)
 GET         /urlActorSocket/:urlName   controllers.ActorController.urlActorSocket(urlName)
 
 # Map static resources from the /public folder to the /assets URL path

@@ -1,10 +1,9 @@
 package app
 
 import actors.DeadLetterActor
-import actors.massive.base.{GetActorRef, LookupActorName, ShutDownTime}
-import actors.massive.factorial.{FactorialRequest, FactorialPersistentLookupActor}
-import actors.massive.url.{Url, URLPersistentLookupActor}
-import akka.actor.{ActorRef, DeadLetter, Props, ActorSystem}
+import actors.massive.base.GetActorRef
+import actors.massive.factorial.{FactorialPersistentLookupActor, FactorialRequest}
+import akka.actor.{ActorRef, ActorSystem, DeadLetter, Props}
 import akka.util.Timeout
 import util.Timer.time
 
@@ -22,7 +21,6 @@ object FactorialPersistentActorApp extends App{
   lazy val system = ActorSystem("example")
   //lazy val lookupActor = system.actorOf(Props[StringTestPersistentLookupActor], "StringTestPersistentLookupActor")
   lazy val lookupActor = system.actorOf(Props[FactorialPersistentLookupActor], "FactorialPersistentLookupActor")
-  import scala.concurrent.duration._
 
   /////////// Start Deadletter Watcher
   val deadLettersSubscriber = system.actorOf(Props[DeadLetterActor], name = "dead-letters-subscriber")
@@ -32,6 +30,7 @@ object FactorialPersistentActorApp extends App{
   /////////////////////////////////
 
   import akka.pattern.ask
+
   import scala.concurrent.ExecutionContext.Implicits.global
   time("10!") {
     lookupActor.ask(FactorialRequest("10")).map(res => println(s"Answer is: $res"))

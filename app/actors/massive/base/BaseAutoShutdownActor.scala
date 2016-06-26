@@ -2,12 +2,9 @@ package actors.massive.base
 
 import java.util.concurrent.TimeUnit
 
-import akka.actor.{ActorRef, Actor}
+import akka.actor.{Actor, ActorRef, DiagnosticActorLogging}
 import akka.cluster.pubsub.DistributedPubSub
-import akka.cluster.pubsub.DistributedPubSubMediator.Subscribe
 import akka.util.Timeout
-//import backend.invest.actor
-import actors.massive._
 import org.joda.time.DateTimeUtils
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,10 +32,10 @@ case class ActorReference(actorRef : ActorRef)
 case class ShutDownRequest()
 case class ShutDown(ref : ActorRef)
 
-case class Subscribe(override val name : String = "EMPTY", val topic : Int, val subscriber : ActorRef) extends LookupActorName
-case class UnSubscribe(override val name : String = "EMPTY", val topic : Int, val subscriber : ActorRef) extends LookupActorName
+case class Subscribe(override val name : String = "EMPTY", topic : Int, subscriber : ActorRef) extends LookupActorName
+case class UnSubscribe(override val name : String = "EMPTY", topic : Int, subscriber : ActorRef) extends LookupActorName
 
-abstract class BaseAutoShutdownActor extends Actor with akka.actor.ActorLogging {
+abstract class BaseAutoShutdownActor extends Actor with DiagnosticActorLogging {
 
   var domain : String
 
@@ -53,7 +50,7 @@ abstract class BaseAutoShutdownActor extends Actor with akka.actor.ActorLogging 
   val subscribers : scala.collection.mutable.Map[ActorRef, scala.collection.mutable.Set[Int]] = scala.collection.mutable.Map[ActorRef, scala.collection.mutable.Set[Int]]()
 
   def notifySubscribers(topic : Int, message : Any) = {
-    System.out.println(s"In notifySubscribers ${subscribers}")
+    System.out.println(s"In notifySubscribers $subscribers")
     subscribers.map{ s =>
       if(s._2.contains(topic) || s._2.contains(0)) {
         System.out.println(s"notifySubscribersInt:  subscriber: ${s}")
@@ -74,7 +71,7 @@ abstract class BaseAutoShutdownActor extends Actor with akka.actor.ActorLogging 
 
     case shutDownRequest: ShutDownRequest => {
       System.out.println(s"Actor $self.path shutDownRequest, RECEIVED!!!")
-      if ((shutdownTime.isFinite()) && lastMessageTSMillis != 0) {
+      if (shutdownTime.isFinite() && lastMessageTSMillis != 0) {
         // This will always be true
         if (((lastMessageTSMillis + shutdownTime.toMillis) < DateTimeUtils.currentTimeMillis()) &&
           !hasSubscribers) {

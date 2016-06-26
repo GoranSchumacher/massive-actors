@@ -2,9 +2,10 @@ package actors.massive.url
 
 import java.util.concurrent.TimeUnit
 
-import actors.massive.base.{BasePersistentAutoShutdownActor, BaseAutoShutdownActor, BaseLookupActor}
-import actors.massive.stock.{StockLookupActor, StockActor, GetStock, SumStock}
-import akka.actor.{ActorSystem, ActorRef, Actor, Props}
+import actors.massive.base.BaseLookupActor
+import actors.massive.stock.{GetStock, SumStock}
+import akka.actor.Props
+import akka.event.LoggingReceive
 import akka.pattern.ask
 import akka.util.Timeout
 
@@ -48,7 +49,7 @@ class URLPersistentLookupActor extends BaseLookupActor {
 
   //override def receive = super[BaseLookupActor].receive orElse {
   //override def receive = {
-  def localReceive : Actor.Receive = {
+  def localReceive  = LoggingReceive {
 
     // Not used - Dummy
     case sum : SumStock => {

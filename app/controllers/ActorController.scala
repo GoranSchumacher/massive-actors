@@ -10,13 +10,14 @@ import actors.massive.stock.{StockLookupActor, GetStock, AddStock}
 import actors.massive.stringtest.{Cmd, StringTestPersistentLookupActor}
 import actors.massive.url.{Url, Print, URLPersistentLookupActor}
 import actors.massive.web.MyWebSocketActor
+import actors.stateless.{HTMLCleanerURL, PDFRenderActor, HTMLCleanerActor}
 import akka.util.Timeout
 import com.sksamuel.elastic4s.{RichSearchResponse, RichGetResponse, ElasticClient}
 import play.api.i18n.MessagesApi
-import play.api.mvc.Controller
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{Request, AnyContent, Controller, Action}
 import akka.actor.{Props, ActorSystem}
 import akka.pattern.ask
+import play.mvc.Result
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
@@ -40,6 +41,8 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
 //  lazy val lookupActor = system.actorOf(Props[StockLookupActor], "StockLookupActor")
 
   lazy val urlLookupActor = system.actorOf(Props[URLPersistentLookupActor], "URLPersistentLookupActor")
+  lazy val HTMLCleanerActor = system.actorOf(Props[HTMLCleanerActor], "HTMLCleaner")
+  lazy val PDFRenderActor = system.actorOf(Props[PDFRenderActor], "PDFRenderActor")
 
   def startActor = Action { implicit request =>
 
@@ -137,7 +140,6 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
     import com.sksamuel.elastic4s.jackson.ElasticJackson
     import ElasticJackson.Implicits._
 
-    //val future : Future[RichSearchResponse] =
     val future  =
     esClient.execute {
       search in "actor"->"URLPersistentActor" query {
@@ -149,7 +151,34 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
       }
     }
     future.map{t => Ok(t.as[actors.massive.url.MyState].apply(0).event.data).as("text/html")}
-    //future.map{t => Ok(views.html.url_actor())}
+  }
+
+  def urlPDF(url : String) = Action.async { implicit request =>
+    import com.sksamuel.elastic4s.ElasticDsl._
+    import com.sksamuel.elastic4s.jackson.ElasticJackson
+    import ElasticJackson.Implicits._
+
+    val future  =
+      esClient.execute {
+        search in "actor"->"URLPersistentActor" query {
+          bool {
+            must(
+              termQuery("_id", url)
+            )
+          }
+        }
+      }
+
+    val dbResponse: Future[Url] = future.map(_.as[actors.massive.url.MyState].apply(0).event)
+    import akka.pattern.ask
+//
+//    dbResponse.map { case a: Url => println(s"Content: ${a.data}")
+//      Ok(a.data).as("text/html")
+//    }
+
+    dbResponse.map{case a:Url=> ask(PDFRenderActor, HTMLCleanerURL(a.url, Some(a.data)))}.map{case a: HTMLCleanerURL =>
+      Ok(a.result.get).as("text/PDF")
+    }
   }
 
   import play.api.libs.json._

@@ -4,14 +4,13 @@ import java.util.Date
 
 import actors.UserSocket.ChatMessage
 import actors.massive.base._
-import actors.massive.web.MyWebSocketActor
+import actors.stateless.{HTMLCleanerActor, HTMLCleanerURL}
+import akka.actor.Props
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish
+import akka.event.Logging.MDC
+import akka.event.LoggingReceive
 import akka.persistence.{SnapshotMetadata, SnapshotOffer}
-import app.Url2
 import com.sksamuel.elastic4s.ElasticClient
-import com.sksamuel.elastic4s.ElasticDsl.index
-import com.sksamuel.elastic4s.jackson.ElasticJackson
-import controllers.InEvent
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -29,6 +28,8 @@ case class MyState(event: Url) {
 
 class URLPersistentActor extends BasePersistentAutoShutdownActor {
 
+  lazy val HTMLCleanerActor = context.actorOf(Props[HTMLCleanerActor], "HTMLCleaner")
+
   lazy val esClient = ElasticClient.remote("127.0.0.1", 9300)
 
   override var domain = URLPersistentLookupActor.domain
@@ -39,9 +40,20 @@ class URLPersistentActor extends BasePersistentAutoShutdownActor {
 
   var notifyEnabled = false
 
+
   def updateState(event: Url): Unit = {
     val content = scala.io.Source.fromURL(event.url).mkString("")
-    val updatedEvent = event.copy(data=content, dataLength=content.size, updated=Some(new Date()))
+    val url = HTMLCleanerURL(event.url)
+    import akka.pattern.ask
+
+    import scala.concurrent.ExecutionContext.Implicits.global
+    ask(HTMLCleanerActor, url).map{case url: HTMLCleanerURL => update2(event, url.result.get)}
+
+  }
+
+  def update2(event: Url, content: String): Unit = {
+
+    val updatedEvent = event.copy(data=content, dataLength=content.length, updated=Some(new Date()))
 
     // This is the way to use Akkas broadcast message, sending message through a topic
     // It is not used by MyWebsocketActor
@@ -89,8 +101,22 @@ class URLPersistentActor extends BasePersistentAutoShutdownActor {
     saveSnapshot(state)
   }
 
-  def receiveRecover: Receive = {
+  // Move to super class?
+  var reqId = 0
+  override def mdc(currentMessage: Any): MDC = {
+    reqId += 1
+    val always = Map("requestId" -> reqId)
+    val perMessage = currentMessage match {
+      case url: Url => Map("Url" -> url.name)
+      case _      => Map()
+    }
+    always ++ perMessage
+  }
+
+  def receiveRecover = LoggingReceive {
     case evt: Url =>
+//      val mdc = Map("requestId" -> 1234, "visitorId" -> 5678)
+//      log.mdc(mdc)
       log.debug("Got Event: " + evt.toString)
       updateState(evt)
     case SnapshotOffer(metadata: SnapshotMetadata, snapshot: MyState) =>

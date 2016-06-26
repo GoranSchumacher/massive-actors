@@ -17,6 +17,8 @@ libraryDependencies ++= Seq(
   "org.webjars" % "bootstrap" % "3.3.4",
   "org.webjars" % "jquery" % "2.1.4",
   "org.webjars" % "handlebars" % "4.0.2",
+  // Depends on: http://wkhtmltopdf.org/downloads.html
+  "io.github.cloudify" %% "spdf" % "1.3.1",
   specs2 % Test,
   ws
 )
