@@ -10,6 +10,19 @@ localhost:9000/urlget/apple.com
 
 Read purpose [here](http://bit.ly/1VGYkqf)
 
+Features
+--------
+* Logging in Elastic Search
+
+    With the use of a logging actor, log files are stored in Elastic search.
+    The purpose is to make log files searchable with Kibana.
+    Meta data, as requestID, userID can be added to the logs and made searchable.
+    
+    
+* Work flow using actors.
+
+    Using a mix of stateless and load balanced configured stateless actors and stateful event sourced and peristent actors.
+
 
 Apps
 ----
@@ -50,3 +63,7 @@ Apps
 
     Calculate fatorials ( 5! ). Each factor is calculated by one actor instance. The result is cached in the actor. Demoes using MongoDB Akka Persistence, event sourcing, communication between actors and lifetime handling.
     
+    
+* HTMLCleanerAndPDFGeneratorApp
+
+    Tests stateless actors with deployment configuration. Tests actor for cleaning html using HTMLCleaner fw and actor for converting html to pdf using cloudify/sPDF.
