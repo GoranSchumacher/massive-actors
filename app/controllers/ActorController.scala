@@ -1,5 +1,6 @@
 package controllers
 
+import java.io.{ByteArrayOutputStream, ByteArrayInputStream, InputStream}
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.concurrent.TimeUnit
@@ -11,10 +12,12 @@ import actors.massive.stringtest.{Cmd, StringTestPersistentLookupActor}
 import actors.massive.url.{Url, Print, URLPersistentLookupActor}
 import actors.massive.web.MyWebSocketActor
 import actors.stateless.{HTMLCleanerURL, PDFRenderActor, HTMLCleanerActor}
+import actors.traits.RouteSlipMessage
 import akka.util.Timeout
 import com.sksamuel.elastic4s.{RichSearchResponse, RichGetResponse, ElasticClient}
 import play.api.i18n.MessagesApi
-import play.api.mvc.{Request, AnyContent, Controller, Action}
+import play.api.libs.iteratee.Enumerator
+import play.api.mvc._
 import akka.actor.{Props, ActorSystem}
 import akka.pattern.ask
 import play.mvc.Result
@@ -43,6 +46,7 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
   lazy val urlLookupActor = system.actorOf(Props[URLPersistentLookupActor], "URLPersistentLookupActor")
   lazy val HTMLCleanerActor = system.actorOf(Props[HTMLCleanerActor], "HTMLCleaner")
   lazy val PDFRenderActor = system.actorOf(Props[PDFRenderActor], "PDFRenderActor")
+
 
   def startActor = Action { implicit request =>
 
@@ -153,6 +157,20 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
     future.map{t => Ok(t.as[actors.massive.url.MyState].apply(0).event.data).as("text/html")}
   }
 
+
+  def urlGetToPDF(url : String) = Action.async { implicit request =>
+    val aHTMLCleanerURL = HTMLCleanerURL(url)
+    val routeSlipMessage = RouteSlipMessage(Seq(PDFRenderActor), aHTMLCleanerURL, true)
+    import akka.pattern.ask
+    ask(HTMLCleanerActor, routeSlipMessage).map{case a:HTMLCleanerURL => Ok(a.result.get).as("application/pdf")}
+//    ask(HTMLCleanerActor, routeSlipMessage).map { case a: HTMLCleanerURL => {
+//      val i: ByteArrayOutputStream = new ByteArrayOutputStream()
+//      i.write(a.result.get.toByte)
+//      Ok(i).as("application/pdf")
+//    }
+//    }
+  }
+
   def urlPDF(url : String) = Action.async { implicit request =>
     import com.sksamuel.elastic4s.ElasticDsl._
     import com.sksamuel.elastic4s.jackson.ElasticJackson
@@ -177,7 +195,7 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
 //    }
 
     dbResponse.map{case a:Url=> ask(PDFRenderActor, HTMLCleanerURL(a.url, Some(a.data)))}.map{case a: HTMLCleanerURL =>
-      Ok(a.result.get).as("text/PDF")
+      Ok(a.result.get).as("application/pdf")
     }
   }
 
