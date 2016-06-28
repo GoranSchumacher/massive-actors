@@ -37,7 +37,7 @@ trait RouteSlip {
       if(copySlip.originalSender.isDefined) {
         nextTask.tell(copySlip.message, copySlip.originalSender.get)
       } else {
-        nextTask ! copySlip.message
+        nextTask ! copySlip
       }
     } else {
       nextTask ! copySlip
