@@ -1,7 +1,7 @@
 package app
 
 import actors.DeadLetterActor
-import actors.massive.base.GetActorRef
+import actors.massive.base.{ActorReference, GetActorRef}
 import actors.massive.factorial.{FactorialPersistentLookupActor, FactorialRequest}
 import akka.actor.{ActorRef, ActorSystem, DeadLetter, Props}
 import akka.util.Timeout
@@ -42,38 +42,39 @@ object FactorialPersistentActorApp extends App{
 
 
   // Fetch an actor ref and ask directly
-  val ref : Future[ActorRef] = lookupActor.ask(GetActorRef("40")).mapTo[ActorRef]
-  ref.map{ actor: ActorRef =>
+  val ref = ask(lookupActor, GetActorRef("40"))
+  ref.map{ case actorRef: ActorReference =>
     for(step <- 1 to 1000 ) {
       time("40! Direkt") {
-        actor.ask(FactorialRequest("40")).map(x => println(x))
+        actorRef.actorRef.ask(FactorialRequest("40")).map(x => println(x))
       }
       Thread.sleep(10000)
     }
   }
+//
+//
+//  // Fetch an actor ref and ask directly
+//  ref.map{ case actorRef: ActorReference =>
+//    time("40! Direkt 1.000 times") {
+//      for(step <- 1 to 1000 ) {
+//        actorRef.actorRef.ask(FactorialRequest("40")).map(x => println(x))
+//      }
+//    }
+//  }
+//
+//  // Fetch an actor ref and ask directly
+//  ref.map{ case actorRef: ActorReference =>
+//      time("40! Direkt 1.000.000 times without waiting for reply") {
+//        for(step <- 1 to 1000000 ) {
+//          actorRef.actorRef.ask(FactorialRequest("40"))
+//            //.map(x => println(x))
+//        }
+//      }
+//  }
+//
+//  time("40!") {
+//    lookupActor.ask(FactorialRequest("40")).map(x => println(x))
+//  }
 
-
-  // Fetch an actor ref and ask directly
-  ref.map{ actor: ActorRef =>
-    time("40! Direkt 1.000 times") {
-      for(step <- 1 to 1000 ) {
-        actor.ask(FactorialRequest("40")).map(x => println(x))
-      }
-    }
-  }
-
-  // Fetch an actor ref and ask directly
-  ref.map{ actor: ActorRef =>
-      time("40! Direkt 1.000.000 times without waiting for reply") {
-        for(step <- 1 to 1000000 ) {
-          actor.ask(FactorialRequest("40"))
-            //.map(x => println(x))
-        }
-      }
-  }
-
-  time("40!") {
-    lookupActor.ask(FactorialRequest("40")).map(x => println(x))
-  }
-
+  Thread.sleep(10000)
 }

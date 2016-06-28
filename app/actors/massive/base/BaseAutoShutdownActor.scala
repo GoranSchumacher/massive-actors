@@ -22,7 +22,7 @@ abstract class LookupActorName{
 
 abstract class LookupActorNameWithReply extends LookupActorName
 
-case class GetActorRef(override val name : String) extends LookupActorName
+case class GetActorRef(override val name : String) extends LookupActorNameWithReply
 // Called to set the timeout time for auto shutdown.
 case class ShutDownTime(override val name : String, shutdownTime : Duration) extends LookupActorName
 
@@ -47,7 +47,7 @@ abstract class BaseAutoShutdownActor extends Actor with DiagnosticActorLogging {
   val topic = "chat"
   val mediator = DistributedPubSub(context.system).mediator
 
-  val subscribers : scala.collection.mutable.Map[ActorRef, scala.collection.mutable.Set[Int]] = scala.collection.mutable.Map[ActorRef, scala.collection.mutable.Set[Int]]()
+  val subscribers: scala.collection.mutable.Map[ActorRef, scala.collection.mutable.Set[Int]] = scala.collection.mutable.Map[ActorRef, scala.collection.mutable.Set[Int]]()
 
   def notifySubscribers(topic : Int, message : Any) = {
     System.out.println(s"In notifySubscribers $subscribers")
@@ -60,14 +60,18 @@ abstract class BaseAutoShutdownActor extends Actor with DiagnosticActorLogging {
     System.out.println(s"Out notifySubscribersInt")
   }
 
+  def messageHandled(): Unit = {
+    lastMessageTSMillis = DateTimeUtils.currentTimeMillis()
+  }
+
   def hasSubscribers = {
     !subscribers.isEmpty
   }
   def receive : Receive = {
 
-    case ActorReference(actorRef: ActorRef) =>
-      context.watch(actorRef)
-      lastMessageTSMillis = DateTimeUtils.currentTimeMillis()
+//    case ActorReference(actorRef: ActorRef) =>
+//      context.watch(actorRef)
+//      messageHandled()
 
     case shutDownRequest: ShutDownRequest => {
       System.out.println(s"Actor $self.path shutDownRequest, RECEIVED!!!")
@@ -82,14 +86,14 @@ abstract class BaseAutoShutdownActor extends Actor with DiagnosticActorLogging {
           context.system.scheduler.scheduleOnce(dur.asInstanceOf[FiniteDuration], self, ShutDownRequest())
         }
       }
-      lastMessageTSMillis = DateTimeUtils.currentTimeMillis()
+      messageHandled()
     }
     case shutDownTime: ShutDownTime => {
       System.out.println(s"Actor $self.path ShutDownTime, RECEIVED!!!")
       shutdownTime = shutDownTime.shutdownTime
       val dur: Duration = shutdownTime * 2
       context.system.scheduler.scheduleOnce(dur.asInstanceOf[FiniteDuration], self, ShutDownRequest())
-      lastMessageTSMillis = DateTimeUtils.currentTimeMillis()
+      messageHandled()
     }
 
     case shutDown: ShutDown => {
@@ -99,8 +103,8 @@ abstract class BaseAutoShutdownActor extends Actor with DiagnosticActorLogging {
 
     case getActorRef: GetActorRef => {
       System.out.println(s"Actor $self.path  GetActorReference!")
-      sender() ! context.self
-      lastMessageTSMillis = DateTimeUtils.currentTimeMillis()
+      sender() ! ActorReference(context.self)
+      messageHandled()
     }
 
     case subscribe : Subscribe => {

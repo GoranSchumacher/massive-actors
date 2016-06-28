@@ -47,14 +47,14 @@ class StockActor extends BaseAutoShutdownActor {
     case add : AddStock =>
       number += add.number
       System.out.println("Addstock: " + add.name + " New number: " + number)
-      lastMessageTSMillis = DateTimeUtils.currentTimeMillis()
+      messageHandled()
     case get : GetStock =>
       mediator ! Publish(topic, ChatMessage("1", s"GetStock called for actor $self.name, Value: $number"))
       implicit val timeout = Timeout(5, TimeUnit.MINUTES)
       System.out.println(s"GetStock: $get.name New number:  $number")
       System.out.println(s"GetStock: $get.name Sender: $sender")
       sender ! number
-      lastMessageTSMillis = DateTimeUtils.currentTimeMillis()
+      messageHandled()
 
     case mess => System.out.println(s"(StockActor): MESSAGE NOT MATCHED: $mess Sender: $sender")
   }

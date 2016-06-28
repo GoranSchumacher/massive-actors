@@ -34,8 +34,6 @@ class FactorialPersistentActor(lookupActor : ActorRef) extends BasePersistentAut
 
   override val topic = "chat"
 
-  var notifyEnabled = false
-
   var originalSender : ActorRef = _
 
   def updateState(request: FactorialRequest): Unit = {
@@ -62,7 +60,6 @@ class FactorialPersistentActor(lookupActor : ActorRef) extends BasePersistentAut
 
 
   override def aroundPreStart: Unit = {
-    notifyEnabled = false
     self ! ShutDownTime(context.self.path.name, 2 minutes )
   }
 
@@ -85,7 +82,7 @@ class FactorialPersistentActor(lookupActor : ActorRef) extends BasePersistentAut
   override val receiveCommand: Receive = super[BasePersistentAutoShutdownActor].receiveShutDown orElse {
     // Cmd and Event are the same class in the example
     case request : FactorialRequest =>
-      lastMessageTSMillis = DateTimeUtils.currentTimeMillis()
+      messageHandled()
       if(state.result.result.isDefined) {
         // We already have a cached result => return it and do not persist this message.
         sender() ! state.result
@@ -96,7 +93,7 @@ class FactorialPersistentActor(lookupActor : ActorRef) extends BasePersistentAut
         }
       }
     case response : FactorialResponse =>
-      lastMessageTSMillis = DateTimeUtils.currentTimeMillis()
+      messageHandled()
       //System.out.println(s"Cmd: Response name:  $response.name")
       persist(response) { event =>
         updateState(event)

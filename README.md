@@ -52,7 +52,7 @@ Apps
     
     Test ElasticSearch integration through Elastic4s.
     
-* DeadLetterTest
+* DeadLetterTest ===== THIS IS AWESOME!!!
     
     Test deadletter actor.
     
