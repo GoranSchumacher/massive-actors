@@ -12,8 +12,6 @@ import akka.persistence.serialization.Message
  */
 class DeadLetterActor extends Actor {
 
-  //TODO: Since an actorRef can be in the cache of the Lookup => Send a special VERIFY message to lookup.
-
   def receive = {
     case dead : DeadLetter if dead.message.isInstanceOf[LookupActorName] => {
       println(s"ECHOING to ${dead.recipient.path.parent} MESSAGE: ${dead.message} as Sender: ${dead.sender}")
