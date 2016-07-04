@@ -43,7 +43,7 @@ object DeadLetterTest extends App {
 
   // This is just a dummy messages.
   // The actor do not care about message type, it just counts the number of messages
-  val entityName = "dummy2"
+  val entityName = "dummy4"
   var mess = CountMess(entityName)
   CountMessagesPersistentLookupActor ! mess //0
   mess = mess.incr
@@ -57,29 +57,30 @@ object DeadLetterTest extends App {
   import akka.pattern.ask
   import scala.concurrent.ExecutionContext.Implicits.global
 
+  var aRef: ActorRef = _
   (CountMessagesPersistentLookupActor ? GetActorRef(entityName)).map { case a: ActorReference => {
     // Here the actor will die
     a.actorRef ! PoisonPill
+    aRef = a.actorRef
   }
   }
   Thread.sleep(5000)
   // But be revived on the next message
   CountMessagesPersistentLookupActor ! mess //4
+  Thread.sleep(5000)
   mess = mess.incr
-  CountMessagesPersistentLookupActor ! mess //5
-  mess = mess.incr
+  aRef ! mess //5
   CountMessagesPersistentLookupActor ! mess //6
   mess = mess.incr
   CountMessagesPersistentLookupActor ! mess //7
   mess = mess.incr
   (CountMessagesPersistentLookupActor ? GetActorRef(entityName)).map { case a: ActorReference => {
-    a.actorRef ! mess //10
+    a.actorRef ! mess //8
   }
   }
-  CountMessagesPersistentLookupActor ! mess //8
-  mess = mess.incr
   CountMessagesPersistentLookupActor ! mess //9
   mess = mess.incr
+
 
   import akka.pattern.ask
   import scala.concurrent.ExecutionContext.Implicits.global

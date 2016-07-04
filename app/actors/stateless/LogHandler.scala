@@ -2,7 +2,7 @@ package actors.stateless
 
 import akka.actor.Actor
 import akka.event.Logging._
-import com.sksamuel.elastic4s.ElasticClient
+import com.sksamuel.elastic4s.{ElasticsearchClientUri, ElasticClient}
 
 /**
  * Will handle sending log to ElasticSearch
@@ -10,8 +10,8 @@ import com.sksamuel.elastic4s.ElasticClient
  * @version $Revision$ 25/06/2016
  */
 class LogHandler extends Actor{
-
-  lazy val esClient = ElasticClient.remote("127.0.0.1", 9300)
+  val uri = ElasticsearchClientUri("elasticsearch://127.0.0.1:9300")
+  lazy val esClient = ElasticClient.transport(uri)
 
   def receive = {
     case InitializeLogger(_) =>
@@ -39,13 +39,13 @@ class LogHandler extends Actor{
     import com.sksamuel.elastic4s.ElasticDsl._
     import com.sksamuel.elastic4s.jackson.ElasticJackson
     import ElasticJackson.Implicits._
+    import scala.concurrent.ExecutionContext.Implicits.global
     esClient.execute {
       index into "actor" / "Log" source logEvent id logEvent.timestamp
+    }.map { t =>
+      println(s"Persisted to Elastic: $t")
+    }.onFailure{
+      case t : Throwable => println(t, "Persisted to Elastic Exception: $t")
     }
-//      .map { t =>
-//      log.debug(s"Persisted to Elastic: $t")
-//    }.onFailure{
-//      case t : Throwable => log.error(t, "Persisted to Elastic")
-//    }
   }
 }

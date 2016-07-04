@@ -2,6 +2,7 @@ package app
 
 import actors.DeadLetterActor
 import actors.stateless.{PDFRenderActor, HTMLCleanerActor, HTMLCleanerURL}
+import actors.traits.RouteSlipMessage
 import akka.actor.{ActorSystem, DeadLetter, Props}
 import akka.util.Timeout
 
@@ -25,6 +26,7 @@ object HTMLCleanerAndPDFGeneratorApp extends App {
   /////////////////////////////////
 
   lazy val HTMLCleanerActor = system.actorOf(Props[HTMLCleanerActor], "HTMLCleaner")
+  lazy val PDFRenderActor = system.actorOf(Props[PDFRenderActor], "PDFRenderActor")
   val aHTMLCleanerURL = HTMLCleanerURL("http://www.ikea.com/dk/da/catalog/categories/departments/dining/")
   import akka.pattern.ask
 
@@ -34,8 +36,15 @@ object HTMLCleanerAndPDFGeneratorApp extends App {
     out = x.result.get
     println(s"HTML: $x")
 
-    lazy val PDFRenderActor = system.actorOf(Props[PDFRenderActor], "PDFRenderActor")
     ask(PDFRenderActor, HTMLCleanerURL(aHTMLCleanerURL.url, Some(out))).map{x => println(s"PDF: $x")}
+  }
+
+  // Stitch both actor calls together with a RouteSlip message
+  val routeSlipMessage = RouteSlipMessage(Seq(PDFRenderActor), aHTMLCleanerURL, true)
+  import akka.pattern.ask
+  ask(HTMLCleanerActor, routeSlipMessage).map{
+    case a:HTMLCleanerURL =>
+      println(s"HTML: ${a.result.get}")
   }
 
 

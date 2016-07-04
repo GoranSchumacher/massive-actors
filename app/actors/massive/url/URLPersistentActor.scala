@@ -44,9 +44,10 @@ class URLPersistentActor extends BasePersistentAutoShutdownActor {
   def updateState(event: Url): Unit = {
     val content = scala.io.Source.fromURL(event.url).mkString("")
     val url = HTMLCleanerURL(event.url)
-    import akka.pattern.ask
 
+    import akka.pattern.ask
     import scala.concurrent.ExecutionContext.Implicits.global
+
     ask(HTMLCleanerActor, url).map{case url: HTMLCleanerURL => update2(event, url.result.get)}
 
   }

@@ -29,7 +29,7 @@ val persistence = Seq(
 
 libraryDependencies ++=persistence
 
-libraryDependencies += "com.sksamuel.elastic4s" %% "elastic4s-core" % "2.2.0"
+libraryDependencies += "com.sksamuel.elastic4s" %% "elastic4s-core" % "2.3.0"
 
 libraryDependencies += "com.sksamuel.elastic4s" %% "elastic4s-jackson" % "2.2.0"
 

@@ -19,7 +19,6 @@ object FactorialPersistentActorApp extends App{
   implicit val timeout = Timeout(30, TimeUnit.SECONDS)
 
   lazy val system = ActorSystem("example")
-  //lazy val lookupActor = system.actorOf(Props[StringTestPersistentLookupActor], "StringTestPersistentLookupActor")
   lazy val lookupActor = system.actorOf(Props[FactorialPersistentLookupActor], "FactorialPersistentLookupActor")
 
   /////////// Start Deadletter Watcher
