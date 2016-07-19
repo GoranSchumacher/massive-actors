@@ -1,8 +1,8 @@
 package app
 
 import actors.DeadLetterActor
-import actors.massive.base.{ActorReference, GetActorRef, ShutDownTime}
-import actors.massive.countmessages.{CountMessAnswer, CountMess, CountMessagesPersistentLookupActor}
+import actors.massive.base.{ActorReference, GetActorRef}
+import actors.massive.countmessages.{CountMess, CountMessAnswer, CountMessagesPersistentLookupActor}
 import akka.actor._
 import akka.util.Timeout
 
@@ -55,37 +55,45 @@ object DeadLetterTest extends App {
   mess = mess.incr
 
   import akka.pattern.ask
+
   import scala.concurrent.ExecutionContext.Implicits.global
 
   var aRef: ActorRef = _
-  (CountMessagesPersistentLookupActor ? GetActorRef(entityName)).map { case a: ActorReference => {
+  (CountMessagesPersistentLookupActor ? GetActorRef(entityName)).map { case a: ActorReference =>
     // Here the actor will die
     a.actorRef ! PoisonPill
     aRef = a.actorRef
   }
-  }
-  Thread.sleep(5000)
+  Thread.sleep(2000)
   // But be revived on the next message
   CountMessagesPersistentLookupActor ! mess //4
-  Thread.sleep(5000)
+  Thread.sleep(2000)
   mess = mess.incr
-  aRef ! mess //5
-  CountMessagesPersistentLookupActor ! mess //6
+  // Here we send a message in the future to the dead actorRef - but miraculously it will arrive!!!
+  system.scheduler.scheduleOnce(100 milliseconds, aRef, mess)
+  //aRef ! mess //5
   mess = mess.incr
-  CountMessagesPersistentLookupActor ! mess //7
+  // Here we send a message in the future to the dead actorRef - but miraculously it will arrive!!!
+  system.scheduler.scheduleOnce(150 milliseconds, aRef, mess)
+  //aRef ! mess //6
   mess = mess.incr
-  (CountMessagesPersistentLookupActor ? GetActorRef(entityName)).map { case a: ActorReference => {
+  // Here we send a message to the dead actorRef - but miraculously it will arrive!!!
+  aRef ! mess //7
+  mess = mess.incr
+  (CountMessagesPersistentLookupActor ? GetActorRef(entityName)).map { case a: ActorReference =>
     a.actorRef ! mess //8
   }
-  }
-  CountMessagesPersistentLookupActor ! mess //9
+  mess = mess.incr
+  aRef ! mess //9
   mess = mess.incr
 
 
   import akka.pattern.ask
+
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  (CountMessagesPersistentLookupActor ? CountMessAnswer(entityName)).map { a => println(s"Answer should be 10: $a") }
+  Thread.sleep(2000)
+  (CountMessagesPersistentLookupActor ? CountMessAnswer(entityName)).map { a => println(s"Answer should be +10: $a") }
 
   Thread.sleep(5000)
   system.terminate()
