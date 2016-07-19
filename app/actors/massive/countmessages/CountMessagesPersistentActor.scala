@@ -2,8 +2,8 @@ package actors.massive.countmessages
 
 import actors.massive.base.{BasePersistentAutoShutdownActor, ShutDownTime}
 import akka.actor.ActorRef
+import akka.event.Logging._
 import akka.persistence.{SnapshotMetadata, SnapshotOffer}
-import akka.persistence.serialization.Message
 
 /**
  * @author Gøran Schumacher (GS) / Schumacher Consulting Aps
@@ -47,6 +47,12 @@ class CountMessagesPersistentActor(lookupActor : ActorRef) extends BasePersisten
     // Cmd and Event are the same class in the example
     case mess: CountMess  =>
       println(s"Mess Received: $mess")
+      // Another way of adding log key/values
+      val mdc = Map("countMess.count2" -> mess.count)
+
+      log.mdc(mdc)
+      log.debug(s"Received message $mess") // By some reason, isErrorEnabled is false
+      log.error(s"Received message $mess") // By some reason, isErrorEnabled is false
       messageHandled()
       persist(mess) { event =>
         updateState()
@@ -57,5 +63,17 @@ class CountMessagesPersistentActor(lookupActor : ActorRef) extends BasePersisten
       sender() ! state
 
     case mess  => System.out.println(s"(CountMessagesPersistentActor): MESSAGE NOT MATCHED: $mess Sender: $sender")
+  }
+
+  // Add key/values to logging
+  var reqId = 0
+  override def mdc(currentMessage: Any): MDC = {
+    reqId += 1
+    val always = Map("requestId" -> reqId)
+    val perMessage = currentMessage match {
+      case countMess: CountMess => Map("countMess.count" -> countMess.count)
+      case _      => Map()
+    }
+    always ++ perMessage
   }
 }

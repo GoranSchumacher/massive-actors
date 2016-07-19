@@ -1,7 +1,7 @@
 package app
 
 import actors.DeadLetterActor
-import actors.stateless.{PDFRenderActor, HTMLCleanerActor, HTMLCleanerURL}
+import actors.stateless.{HTMLCleanerActor, HTMLCleanerURL, PDFRenderActor}
 import actors.traits.RouteSlipMessage
 import akka.actor.{ActorSystem, DeadLetter, Props}
 import akka.util.Timeout
@@ -44,7 +44,7 @@ object HTMLCleanerAndPDFGeneratorApp extends App {
   import akka.pattern.ask
   ask(HTMLCleanerActor, routeSlipMessage).map{
     case a:HTMLCleanerURL =>
-      println(s"HTML: ${a.result.get}")
+      println(s"PDF: ${a}")
   }
 
 

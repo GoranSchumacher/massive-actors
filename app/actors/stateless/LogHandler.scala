@@ -2,10 +2,12 @@ package actors.stateless
 
 import akka.actor.Actor
 import akka.event.Logging._
-import com.sksamuel.elastic4s.{ElasticsearchClientUri, ElasticClient}
+import com.sksamuel.elastic4s.{ElasticClient, ElasticsearchClientUri}
 
 /**
  * Will handle sending log to ElasticSearch
+ * See how to add extra key7value pairs in class
+ * @see URLPersistentActor
  * @author Gøran Schumacher (GS) / Schumacher Consulting Aps
  * @version $Revision$ 25/06/2016
  */
@@ -32,13 +34,13 @@ class LogHandler extends Actor{
     case d@ Debug(logSource, logClass, message) =>
       println(s"DEBUG: [$logSource - $logClass] $message ${d.mdc}")
       persistElasticsearch(d)
-
   }
 
   def persistElasticsearch(logEvent: LogEvent): Unit = {
     import com.sksamuel.elastic4s.ElasticDsl._
     import com.sksamuel.elastic4s.jackson.ElasticJackson
     import ElasticJackson.Implicits._
+
     import scala.concurrent.ExecutionContext.Implicits.global
     esClient.execute {
       index into "actor" / "Log" source logEvent id logEvent.timestamp

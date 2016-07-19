@@ -18,7 +18,7 @@ case class SubscriberState(subscribers: scala.collection.mutable.Map[ActorRef, S
 }
 
 
-class SubscriptionActor extends BasePersistentAutoShutdownActor {
+class SubscriptionActor extends BasePersistentAutoShutdownActor  {
 
   var state : SubscriberState = SubscriberState()
 

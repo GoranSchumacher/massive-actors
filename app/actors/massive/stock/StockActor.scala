@@ -6,7 +6,6 @@ import actors.UserSocket.ChatMessage
 import actors.massive.base.{BaseAutoShutdownActor, LookupActorName, LookupActorNameWithReply}
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish
 import akka.util.Timeout
-import org.joda.time.DateTimeUtils
 
 import scala.language.postfixOps
 

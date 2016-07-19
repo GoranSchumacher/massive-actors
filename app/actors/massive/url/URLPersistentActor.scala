@@ -46,6 +46,7 @@ class URLPersistentActor extends BasePersistentAutoShutdownActor {
     val url = HTMLCleanerURL(event.url)
 
     import akka.pattern.ask
+
     import scala.concurrent.ExecutionContext.Implicits.global
 
     ask(HTMLCleanerActor, url).map{case url: HTMLCleanerURL => update2(event, url.result.get)}
@@ -116,6 +117,7 @@ class URLPersistentActor extends BasePersistentAutoShutdownActor {
 
   def receiveRecover = LoggingReceive {
     case evt: Url =>
+// Another way of adding log key/values
 //      val mdc = Map("requestId" -> 1234, "visitorId" -> 5678)
 //      log.mdc(mdc)
       log.debug("Got Event: " + evt.toString)
