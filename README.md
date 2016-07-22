@@ -73,5 +73,5 @@ Apps
     The configuration tells how to scale up and down the number of actor instances.
     Tests actor for cleaning html using HTMLCleaner fw and actor for converting html to pdf.
     Shows how to build work flows consisting of actor chains that pass messages from one actor to the other, using the RouteSlip Enterprise Integration patterns (EIP).
-    Furthinor Mer EIP's, like filters, routers etc will be implemented in the future.
+    More EIP's, like filters, routers etc will be implemented in the future.
     Also Try-like error handling and propagation will be implemented.
