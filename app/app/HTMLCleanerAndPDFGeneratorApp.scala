@@ -27,7 +27,7 @@ object HTMLCleanerAndPDFGeneratorApp extends App {
 
   lazy val HTMLCleanerActor = system.actorOf(Props[HTMLCleanerActor], "HTMLCleaner")
   lazy val PDFRenderActor = system.actorOf(Props[PDFRenderActor], "PDFRenderActor")
-  val aHTMLCleanerURL = HTMLCleanerURL("http://www.ikea.com/dk/da/catalog/categories/departments/dining/")
+  val aHTMLCleanerURL = HTMLCleanerURL("file:///Users/GSConsulting/massive-actors/SimpleHTMLExample.html ")
   import akka.pattern.ask
 
   import scala.concurrent.ExecutionContext.Implicits.global
@@ -44,7 +44,7 @@ object HTMLCleanerAndPDFGeneratorApp extends App {
   import akka.pattern.ask
   ask(HTMLCleanerActor, routeSlipMessage).map{
     case a:HTMLCleanerURL =>
-      println(s"PDF: ${a}")
+      println(s"PDF byteArry: ${a.byteArray.get.toString}")
   }
 
 

@@ -13,8 +13,8 @@ class PDFRenderActor extends Actor with RouteSlip with ActorLogging {
 
   def receive = LoggingReceive {
 
-    case clean: HTMLCleanerURL =>
-      val result: HTMLCleanerURL = renderHTMLAsPDF(clean)
+    case renderPDF: HTMLCleanerURL =>
+      val result: HTMLCleanerURL = renderHTMLAsPDF(renderPDF)
       sender() ! result
 
     case routeSlip: RouteSlipMessage =>

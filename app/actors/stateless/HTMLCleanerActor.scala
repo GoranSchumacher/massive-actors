@@ -38,7 +38,7 @@ class HTMLCleanerActor extends Actor with RouteSlip with ActorLogging {
     val urlHost = url.getHost
     val urlPath = url.getPath
 
-    val node: TagNode = cleaner.clean(new URL(clean.url))
+    val node: TagNode = cleaner.clean(url)
     node.traverse(new TagNodeVisitor() {
       override def visit(tagNode: TagNode, htmlNode: HtmlNode): Boolean = {
         if (htmlNode.isInstanceOf[TagNode]) {

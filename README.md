@@ -56,7 +56,10 @@ Apps
     
     Test deadletter actor.
     
-    Purpose if this is to let the deadletter actor notify the lookupactor of messages that's been lost. The lookupactor will then instantiate the entity actor again and resend the message. This way the lookupactor will not have to keep track of the entityactors lifecycle.
+    Purpose if this is to let the deadletter actor notify the lookupactor of messages that's been lost. The lookupactor will then instantiate the entity actor again and resend the message.
+    This way the lookupactor will not have to keep track of the entityactors lifecycle.
+    This is amazing, since now we can have millions of actors in an actor system that can hibernate when they are not used.
+    Even when hibernating these actors can receive messages from other actors or timed events from the actor system.
     
     
 * [FactorialPersistentActorApp](app/app/FactorialPersistentActorApp.scala)
@@ -66,4 +69,9 @@ Apps
     
 * [HTMLCleanerAndPDFGeneratorApp](app/app/HTMLCleanerAndPDFGeneratorApp.scala)
 
-    Tests stateless actors with deployment configuration. Tests actor for cleaning html using HTMLCleaner fw and actor for converting html to pdf.
+    Tests stateless actors with [deployment configuration](conf/application.conf). 
+    The configuration tells how to scale up and down the number of actor instances.
+    Tests actor for cleaning html using HTMLCleaner fw and actor for converting html to pdf.
+    Shows how to build work flows consisting of actor chains that pass messages from one actor to the other, using the RouteSlip Enterprise Integration patterns (EIP).
+    Furthinor Mer EIP's, like filters, routers etc will be implemented in the future.
+    Also Try-like error handling and propagation will be implemented.
