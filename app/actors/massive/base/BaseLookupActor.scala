@@ -44,146 +44,46 @@ abstract class BaseLookupActor extends Actor with akka.actor.ActorLogging {
 
   implicit val timeout = Timeout(5, TimeUnit.MINUTES)
 
-  val actorRefCache: scala.collection.mutable.Map[String, ActorRefCache] = scala.collection.mutable.Map[String, ActorRefCache]()
-
   override def aroundPreRestart(reason: scala.Throwable, message: scala.Option[scala.Any]): Unit = {
     // Read in state here!
-    //StockLookupActor.actorRef = Some(context.self)
   }
 
   def receive = {
 
-    // Watch terminated children
-    // It doesn't seem that this is called for child actors.
-    case Terminated(subscriber) =>
-      //if (context.children.contains(subscriber)) {
-      println(s"Child actor $subscriber has terminated - Removed from Queue")
-      val key = subscriber.path.name
-      val answer = actorRefCache.get(key).map { a => actorRefCache.update(key, a.copy(actorRef = None)) }
-      println(s"Child actor $answer.")
-    //}
-
     case isActorInCache: IsActorInCache => {
-      val x = actorRefCache.get(isActorInCache.name)
-      if (x.isDefined) {
-        sender ! x.get.actorRef
-      } else {
-        sender ! None
-      }
+      sender ! context.child(isActorInCache.name)
     }
 
     case shutDown: ShutDown => {
-      System.out.println(s"shutDown received for actor: $shutDown, Sender: $sender")
-      actorRefCache.remove(shutDown.ref.path.name)
       System.out.println(s"shutDown received for actor: $shutDown, Sender: $sender CLOSING!!!")
       sender ! shutDown
-
     }
-    case fromFinder: INTERNAL_RESULT_FROM_FINDER => {
-      findOrCreateAndForward2Actor(fromFinder.actorRef, fromFinder.stockRef, fromFinder.originalSender)
-    }
-    //
-    //    case ActorReference(actorRef : ActorRef) => {
-    //      actorRef ! ActorReference(self)
-    //    }
 
     case actorRefReply: LookupActorNameWithReply => {
       //REMEMBER; It seams that if the child dies, messages are automatically sent to parent, as we get deadletter as sender here sometimes.
       if (sender.toString.contains("deadLetters")) {
         println(s"DEAD_LETTER FOUND1")
       }
-      findOrCreateAndForwardActor(actorRefReply, sender)
+      // Currently do handle reply the same way as non-reply
+      findOrCreateChildActor(actorRefReply)
     }
+
     case actorRef: LookupActorName => {
-      if (sender.toString.contains("deadLetters")) {
-        println(s"DEAD_LETTER FOUND2")
-      }
-      findOrCreateAndForwardActor(actorRef, sender)
+      findOrCreateChildActor(actorRef)
     }
 
     case mess => System.out.println(s"(BaseLookupActor): MESSAGE NOT MATCHED: $mess Sender: $sender")
   }
 
+  private def findOrCreateChildActor(lookupActorName: LookupActorName): Unit = {
+    context.child(lookupActorName.name).getOrElse {
+      val actor = context.actorOf(actorProps, name = lookupActorName.name)
+      actor ! "dummyMessage"
+      actor
+    }.tell(lookupActorName, sender)
+  }
+
   def active(another: ActorRef): Actor.Receive = {
     case Terminated(`another`) => context.stop(self)
-  }
-
-  def findOrCreateAndForwardActor(stockRef: LookupActorName, originalSender: ActorRef) = {
-    if (originalSender.toString.contains("deadLetters")) {
-      println(s"DEAD_LETTER FOUND3")
-    }
-    val cacheEntry: Option[ActorRefCache] = actorRefCache.get(stockRef.name)
-
-    // If No match in Cache => Look it up in Actor System
-    if (cacheEntry.isEmpty) {
-      actorRefCache.put(stockRef.name, ActorRefCache(None))
-
-      val selection: ActorSelection = context.actorSelection(stockRef.name)
-      val sel: Future[akka.actor.ActorRef] = selection.resolveOne() // Returns a future!!
-      //          sel.onFailure {
-      //            case t => System.out.println(s"Actor $sel failed with message $t.message")
-      //          }
-
-      sel.onComplete {
-        self ! INTERNAL_RESULT_FROM_FINDER(_, stockRef, originalSender)
-      }
-
-    } else {
-      // It is in the cache
-      val cache: ActorRefCache = cacheEntry.get
-
-      val actorRef = cache.actorRef
-
-      if (actorRef.isDefined) {
-
-        actorRef.map { actor =>
-          actor.tell(stockRef, originalSender)
-          System.out.println(s"Tell4: $stockRef")
-          if (cache.cachedMessages.size > 0) {
-            println(s"1-CACHE IS WRONG SIZE: ${cache.cachedMessages.size}")
-          }
-        }
-      } else {
-        actorRefCache.put(stockRef.name, cache.copy(cachedMessages = cache.cachedMessages :+ MessageAndSender(stockRef, originalSender))) // ADDED MESSAGE
-      }
-
-    }
-  }
-
-  def findOrCreateAndForward2Actor(possible: Try[ActorRef], message: LookupActorName, sender: ActorRef) = {
-    val definite = possible match {
-      case Success(actor) =>
-        // Put the actor in the cache
-        actorRefCache.get(message.name).map { cache =>
-          actorRefCache.put(message.name, cache.copy(actorRef = Some(actor)))
-          actor.tell(message, sender)
-          System.out.println(s"Tell3: $message to ${actor} as Sender: $sender")
-          cache.cachedMessages.foreach { mess: MessageAndSender =>
-            actor.tell(mess.message, mess.sender)
-            System.out.println(s"  Tell3b: ${mess.message} to ${actor} as Sender: ${mess.sender}")
-          }
-          cache.cachedMessages.clear()
-
-        }
-      case Failure(errorMessage) =>
-        // Creating a new actor
-        val actor = context.actorOf(actorProps, name = message.name)
-        actorRefCache.get(message.name).map { cache =>
-          if (delay_when_starting_actor.isDefined) {
-            actor ! "dummyMessage"
-            Thread.sleep(delay_when_starting_actor.get.duration.toMillis)
-          }
-          // I thing children get's watched automatically
-          context.watch(actor)
-          actor.tell(message, sender)
-          System.out.println(s"Tell1: $message to ${actor} as Sender: ${message}")
-          cache.cachedMessages.foreach { mess: MessageAndSender =>
-            actor.tell(mess.message, mess.sender)
-            System.out.println(s"  Tell2: ${mess.message} to ${actor} as Sender: ${mess.sender}")
-          }
-          cache.cachedMessages.clear()
-          actorRefCache.replace(message.name, cache.copy(actorRef = Some(actor)))
-        }
-    }
   }
 }
