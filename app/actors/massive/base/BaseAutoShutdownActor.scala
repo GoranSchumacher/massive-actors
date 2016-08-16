@@ -40,7 +40,9 @@ abstract class BaseAutoShutdownActor extends Actor with DiagnosticActorLogging {
   var domain : String
 
   var shutdownTime : Duration = Duration.Undefined
-  var lastMessageTSMillis : Long = 0
+  var lastMessageTSMillis: Long = 0
+  var countMessages: Long = 0
+  var countMessagesSinceSnapshot: Long = 0
 
   implicit val timeout = Timeout(5, TimeUnit.SECONDS)
 
@@ -62,6 +64,8 @@ abstract class BaseAutoShutdownActor extends Actor with DiagnosticActorLogging {
 
   def messageHandled(): Unit = {
     lastMessageTSMillis = DateTimeUtils.currentTimeMillis()
+    countMessages+=1
+    countMessagesSinceSnapshot+=1
   }
 
   def hasSubscribers = {
