@@ -6,10 +6,11 @@ package util
  */
 object Timer {
   def time[R](task : String)( block: => R): R = {
-    val t0 = System.nanoTime()
+    val t0 = System.currentTimeMillis()
     val result = block    // call-by-name
-    val t1 = System.nanoTime()
-    println(s"Elapsed time for task $task: " + (t1 - t0) + "ns")
+    val t1 = System.currentTimeMillis()
+    val duration = t1-t0
+    println(f"Elapsed time for task: $task - $duration%,15d ms")
     result
   }
 }

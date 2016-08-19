@@ -90,7 +90,7 @@ abstract class BaseAutoShutdownActor extends Actor with DiagnosticActorLogging {
           context.system.scheduler.scheduleOnce(dur.asInstanceOf[FiniteDuration], self, ShutDownRequest())
         }
       }
-      messageHandled()
+      //messageHandled()
     }
     case shutDownTime: ShutDownTime => {
       System.out.println(s"Actor $self.path ShutDownTime, RECEIVED!!!")
@@ -117,6 +117,7 @@ abstract class BaseAutoShutdownActor extends Actor with DiagnosticActorLogging {
       val x2 = x.getOrElse(scala.collection.mutable.Set[Int]())
       x2.add(subscribe.topic)
       subscribers.put(subscribe.subscriber, x2)
+      messageHandled()
     }
 
     case unSubscribe : UnSubscribe => {
@@ -129,6 +130,7 @@ abstract class BaseAutoShutdownActor extends Actor with DiagnosticActorLogging {
       } else {
         subscribers.put(unSubscribe.subscriber, x2)
       }
+      messageHandled()
     }
   }
 }
