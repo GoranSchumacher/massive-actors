@@ -46,23 +46,30 @@ class CountMessagesPersistentActor(lookupActor : ActorRef) extends BasePersisten
   override val receiveCommand: Receive = super[BasePersistentAutoShutdownActor].receiveShutDown orElse {
     // Cmd and Event are the same class in the example
     case mess: CountMess  =>
-      //println(s"Mess Received: $mess")
       // Another way of adding log key/values
       val mdc = Map("countMess.count2" -> mess.count)
 
       log.mdc(mdc)
       log.debug(s"Received message $mess") // By some reason, isErrorEnabled is false
       log.error(s"Received message $mess") // By some reason, isErrorEnabled is false
-      messageHandled()
-      persist(mess) { event =>
+
+      // Make a snapshot every 100.000 message, for performance.
+      // When making snapshot, you must have made a persistence call first.
+      if (countMessagesSinceSnapshot==0) {
+        persist(mess) { event =>
+          updateState()
+        }
+      } else {
         updateState()
       }
-      if(countMessagesSinceSnapshot >1000) {
-        saveSnapshot()
-        countMessagesSinceSnapshot=0
+      messageHandled()
+      if(countMessagesSinceSnapshot >100000) {
+        saveSnapshot(state)
+        countMessagesSinceSnapshot=1
       }
 
     case mess: CountMessAnswer =>
+      println(s"CountMessAnswer Received from sender: $sender!!!")
       messageHandled()
       sender() ! state
 
