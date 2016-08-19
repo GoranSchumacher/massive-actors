@@ -56,23 +56,6 @@ object DeadLetterTest extends App {
   CountMessagesPersistentLookupActor ! mess //3
   mess = mess.incr
 
-
-//  time("1.000.000 calls") {
-//    for (step <- 1 to 1000000) {
-//      CountMessagesPersistentLookupActor ! mess //10
-//    }
-//  }
-
-//  import akka.pattern.ask
-//  import scala.concurrent.ExecutionContext.Implicits.global
-//  (CountMessagesPersistentLookupActor ? GetActorRef(entityName)).map { case a: ActorReference =>
-//    time("1.000.000 calls") {
-//      for (step <- 1 to 1000000) {
-//        a.actorRef ! mess //10
-//      }
-//    }
-//  }
-
   import akka.pattern.ask
 
   import scala.concurrent.ExecutionContext.Implicits.global
