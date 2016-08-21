@@ -40,11 +40,11 @@ class MyWebSocketActor(out: ActorRef, lookupActor : ActorRef, var subscribeOnAct
     case in : InEvent =>
       System.out.println(s"Received msg InEvent: $in")
       out ! OutEvent(in.url)
-          // unsubscribe
+          // unsubscribe on old subscription
           val unSubscribe = UnSubscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_SUBSCRIPTION_LENGTH, context.self)
           lookupActor ! unSubscribe
           //
-          // Subscribe
+          // Subscribe new subscription
           subscribeOnActorName = in.name
           val subscribe = Subscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_SUBSCRIPTION_LENGTH, context.self)
           lookupActor ! subscribe

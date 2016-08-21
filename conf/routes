@@ -12,6 +12,7 @@ GET         /socket                         controllers.Chat.socket
 GET         /startActor                     controllers.ActorController.startActor
 GET         /test                           controllers.ActorController.test
 GET         /url/:link/:minutes             controllers.ActorController.url(link, minutes : Long)
+GET         /urlEmptyForm                   controllers.ActorController.urlEmptyForm
 GET         /urlget/:link                   controllers.ActorController.urlGet(link)
 GET         /urlPDF/:link                   controllers.ActorController.urlPDF(link)
 GET         /urlToPDF                       controllers.ActorController.urlGetToPDF(link)

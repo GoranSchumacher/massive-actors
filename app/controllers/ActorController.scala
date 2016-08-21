@@ -138,6 +138,10 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
     Ok(views.html.url_actor(url))
   }
 
+  def urlEmptyForm = Action { implicit request =>
+    Ok(views.html.url_actor("empty"))
+  }
+
   def urlGet(url : String) = Action.async { implicit request =>
     import com.sksamuel.elastic4s.ElasticDsl._
     import com.sksamuel.elastic4s.jackson.ElasticJackson

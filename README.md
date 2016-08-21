@@ -2,12 +2,6 @@
 
 This project is a test bench for several Akka ideas.
 
-
-URLs
-====
-http://localhost:9000/url/apple.com/1
-localhost:9000/urlget/apple.com
-
 Read purpose [here](http://bit.ly/1VGYkqf)
 
 Features
@@ -23,6 +17,28 @@ Features
 
     Using a mix of stateless and load balanced, configured stateless actors and stateful, event sourced and peristent actors.
 
+Playframework Controller
+----
+* [ActorController](app/controllers/ActorController.scala)
+    
+    Start as a Play application: sbt run
+
+    In browser go to http://localhost:9000/urlEmptyForm.
+
+    Follow the instructions and enter a name and a valid ur.
+    
+    
+    The url will be called once every minute and any changes in size will be reported.
+    
+    
+    This demos how to create a web page with a javascript websocket connection.
+    
+    
+    An Actor connected to the form will be created. 
+    
+    This actor will instantiate and subscribe to events from an actor that will download the url once every minute
+    and report back any changes in size.
+    
 
 Apps
 ----
