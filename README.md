@@ -74,7 +74,7 @@ Scala Apps
     
     Test deadletter actor.
     
-    Purpose if this is to let the deadletter actor notify the LookupActor of messages that's been lost. The LookupActor will then instantiate the EntityActor again and resend the message.
+    Purpose if this is to let the deadletter actor notify the LookupActor of messages that's been lost due to hibernating recipient. The LookupActor will then instantiate the EntityActor again and resend the message.
     This way the LookupActor will not have to keep track of the EntityActor lifecycle.
     This is amazing, since now we can have millions of actors in an actor system that can hibernate when they are not used.
     Even when hibernating these actors can receive messages from other actors or timed events from the actor system.
