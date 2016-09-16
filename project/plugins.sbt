@@ -8,3 +8,6 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-coffeescript" % "1.0.0")
 addSbtPlugin("com.typesafe.sbt" % "sbt-less" % "1.1.0")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-digest" % "1.1.0")
+
+// React Example
+addSbtPlugin("com.github.ddispaltro" % "sbt-reactjs" % "0.5.2")
