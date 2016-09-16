@@ -13,7 +13,7 @@ import util.Timer._
  * @author Gøran Schumacher (GS) / Schumacher Consulting Aps
  * @version $Revision$ 17/08/2016
  */
-object DeadLetterLoopingTest extends App {
+object LoopingTest extends App {
 
   import java.util.concurrent.TimeUnit
 
@@ -44,7 +44,7 @@ object DeadLetterLoopingTest extends App {
       for (step <- 1 to loopCount) {
         actorReference.actorRef ! mess.copy(count = step)
       }
-      (actorReference.actorRef ? CountMessAnswer(entityName)).map { case i: Int => println(f"Answer should be +10: $i%,15d") }.
+      (actorReference.actorRef ? CountMessAnswer(entityName)).map { case i: Int => println(f"Answer should be +$loopCount%,15d: $i%,15d") }.
         onFailure{case ex: Exception => println(s"Future returned exception $ex")}
     }
   }
