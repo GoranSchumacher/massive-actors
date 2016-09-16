@@ -2,7 +2,7 @@ name := """Clustered chat"""
 
 version := "1.0-SNAPSHOT"
 
-lazy val root = (project in file(".")).enablePlugins(PlayScala)
+lazy val root = (project in file(".")).enablePlugins(PlayScala, SbtWeb)
 
 scalaVersion := "2.11.7"
 
@@ -17,6 +17,10 @@ libraryDependencies ++= Seq(
   "org.webjars" % "bootstrap" % "3.3.4",
   "org.webjars" % "jquery" % "2.1.4",
   "org.webjars" % "handlebars" % "4.0.2",
+  // React Example
+  "org.webjars" % "react" % "0.13.3",
+  "org.webjars" % "marked" % "0.3.2",
+  //
   specs2 % Test,
   ws
 )
