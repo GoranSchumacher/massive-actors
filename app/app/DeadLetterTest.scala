@@ -26,19 +26,6 @@ object DeadLetterTest extends App {
   system.eventStream.subscribe(deadLettersSubscriber, classOf[DeadLetter])
   Thread.sleep(2000)
 
-  val echoActor = system.actorOf(Props[DeadLetterActor], name = "generic-echo-actor")
-  echoActor ! "First Message"
-  // generic-echo-actor - New msg received: First Message
-
-  echoActor ! PoisonPill
-  echoActor ! "Second Message"
-  // dead-letters-subscriber - New msg received: DeadLetter(Second Message,Actor[akka://dead-letters-usage-example/deadLetters],Actor[akka://dead-letters-usage-example/user/generic-echo-actor#317003256])
-  // INFO  [RepointableActorRef]: Message [java.lang.String] from Actor[akka://dead-letters-usage-example/deadLetters] to Actor[akka://dead-letters-usage-example/user/generic-echo-actor#317003256] was not delivered. [1] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
-
-  system.deadLetters ! "Dead Message"
-  // dead-letters-subscriber - New msg received: DeadLetter(Dead Message,Actor[akka://dead-letters-usage-example/deadLetters],Actor[akka://dead-letters-usage-example/deadLetters])
-  // INFO  [DeadLetterActorRef]: Message [java.lang.String] from Actor[akka://dead-letters-usage-example/deadLetters] to Actor[akka://dead-letters-usage-example/deadLetters] was not delivered. [2] dead letters encountered. This logging can be turned off or adjusted with configuration settings 'akka.log-dead-letters' and 'akka.log-dead-letters-during-shutdown'.
-
   val CountMessagesPersistentLookupActor = system.actorOf(Props[CountMessagesPersistentLookupActor], name = "CountMessagesPersistentLookupActor")
 
   import scala.concurrent.duration._

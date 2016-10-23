@@ -40,16 +40,18 @@ object LoopingTest extends App {
   val loopCount = 10000000
 
   (CountMessagesPersistentLookupActor ? GetActorRef(entityName)).map { case actorReference: ActorReference =>
+    val start = System.currentTimeMillis()
     time(f"$loopCount%,15d calls") {
       for (step <- 1 to loopCount) {
         actorReference.actorRef ! mess.copy(count = step)
       }
-      (actorReference.actorRef ? CountMessAnswer(entityName)).map { case i: Int => println(f"Answer should be +$loopCount%,15d: $i%,15d") }.
+      (actorReference.actorRef ? CountMessAnswer(entityName)).map { case i: Int =>
+        println(f"Answer should be +$loopCount%,15d: $i%,15d Duration: ${System.currentTimeMillis()-start}%,5d ms") }.
         onFailure{case ex: Exception => println(s"Future returned exception $ex")}
     }
   }
 
-  Thread.sleep(5000000)
+  Thread.sleep(50000)
   system.terminate()
 }
 
