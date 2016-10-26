@@ -48,9 +48,11 @@ class MyWebSocketActor(out: ActorRef, lookupActor : ActorRef, var subscribeOnAct
           subscribeOnActorName = in.name
           val subscribe = Subscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_ALL_SUBSCRIPTION, context.self)
           lookupActor ! subscribe
-          val urlMess = Url(subscribeOnActorName, in.url, Some(60 seconds))
-          lookupActor ! urlMess
-          lookupActor ! ShutDownTime(subscribeOnActorName, 5 seconds)
+      if(in.url!="") {
+        val urlMess = Url(subscribeOnActorName, in.url, Some(60 seconds))
+        lookupActor ! urlMess
+        lookupActor ! ShutDownTime(subscribeOnActorName, 5 seconds)
+      }
 
     case out : OutEvent =>
       System.out.println(s"Received msg OutEvent: $out")
