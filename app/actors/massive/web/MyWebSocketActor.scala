@@ -21,7 +21,7 @@ class MyWebSocketActor(out: ActorRef, lookupActor : ActorRef, var subscribeOnAct
   override def aroundPreStart(): Unit = {
     context.system.scheduler.schedule(100 millisecond,10 second, self, "Hi there again!!!")
     // Subscribe
-    val subscribe = Subscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_SUBSCRIPTION_LENGTH, context.self)
+    val subscribe = Subscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_ALL_SUBSCRIPTION, context.self)
     lookupActor ! subscribe
     lookupActor ! ShutDownTime(subscribeOnActorName, 5 seconds)
   }
@@ -29,7 +29,7 @@ class MyWebSocketActor(out: ActorRef, lookupActor : ActorRef, var subscribeOnAct
   override def aroundPostStop(): Unit = {
     // UnSubscribe
     System.out.println(s"UnSubscribe called!")
-    val unSubscribe = UnSubscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_SUBSCRIPTION_LENGTH, context.self)
+    val unSubscribe = UnSubscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_ALL_SUBSCRIPTION, context.self)
     lookupActor ! unSubscribe
   }
 
@@ -41,12 +41,12 @@ class MyWebSocketActor(out: ActorRef, lookupActor : ActorRef, var subscribeOnAct
       System.out.println(s"Received msg InEvent: $in")
       out ! OutEvent(in.url)
           // unsubscribe on old subscription
-          val unSubscribe = UnSubscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_SUBSCRIPTION_LENGTH, context.self)
+          val unSubscribe = UnSubscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_ALL_SUBSCRIPTION, context.self)
           lookupActor ! unSubscribe
           //
           // Subscribe new subscription
           subscribeOnActorName = in.name
-          val subscribe = Subscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_SUBSCRIPTION_LENGTH, context.self)
+          val subscribe = Subscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_ALL_SUBSCRIPTION, context.self)
           lookupActor ! subscribe
           val urlMess = Url(subscribeOnActorName, in.url, Some(60 seconds))
           lookupActor ! urlMess

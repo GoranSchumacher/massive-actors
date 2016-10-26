@@ -61,9 +61,13 @@ class URLPersistentActor extends BasePersistentAutoShutdownActor {
     // It is not used by MyWebsocketActor
     if(updatedEvent.dataLength != state.event.dataLength) {
       // Only called if the length has changed.
-      mediator ! Publish(topic, ChatMessage("1", s"updateState called for actor ${context.self.path.name}, Value different: ${updatedEvent.dataLength}"))
+      mediator ! Publish(topic, ChatMessage("1", s"updateState.Length_Changed called for actor ${context.self.path.name}, Value different: ${updatedEvent.dataLength}"))
+      // Here we notify listening actors through our own notifiaction mecanism
+      notifySubscribers(URLPersistentLookupActor.TOPIC_SUBSCRIPTION_LENGTH, (s"Notify.Length_Changed. Url: ${updatedEvent.url}, Size: ${updatedEvent.dataLength} OldSize: ${state.event.dataLength}"))
     }
-    mediator ! Publish(topic, ChatMessage("1", s"updateState called for actor ${context.self.path.name}, Value: ${updatedEvent.dataLength}"))
+    mediator ! Publish(topic, ChatMessage("1", s"updateState.Url_Called called for actor ${context.self.path.name}, Value: ${updatedEvent.dataLength}"))
+    // Here we notify listening actors through our own notifiaction mecanism
+    notifySubscribers(URLPersistentLookupActor.TOPIC_SUBSCRIPTION_URL_CALLED, (s"Notify.Url_Called Url: ${updatedEvent.url}, Size: ${updatedEvent.dataLength} OldSize: ${state.event.dataLength}"))
 
     // Here we set the timer for driving the repetition.
     if(!notifyEnabled) {
@@ -71,8 +75,6 @@ class URLPersistentActor extends BasePersistentAutoShutdownActor {
       context.system.scheduler.schedule(updatedEvent.repeat.get, updatedEvent.repeat.get, self, updatedEvent)
       notifyEnabled = true
     }
-    // Here we notify listening actors
-    notifySubscribers(URLPersistentLookupActor.TOPIC_SUBSCRIPTION_LENGTH, (s"Notify. Url: ${updatedEvent.url}, Size: ${updatedEvent.dataLength} OldSize: ${state.event.dataLength}"))
 
     // Here we set the new state
     state = MyState(updatedEvent)
