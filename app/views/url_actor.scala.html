@@ -14,17 +14,18 @@
         </div>
         <div>
             Url:
-            <input type="text" id="messageurl"/>
+            <input type="text" id="messageurl" size=50/>
         </div>
         <div>
             <button type="button" onclick="openSocket();" >Open</button>
-            <button type="button" onclick="send();" >Send</button>
+            <button type="button" onclick="add();" >Add</button>
             <button type="button" onclick="closeSocket();" >Close</button>
+            <button type="button" onclick="clearList();" >Clear</button>
         </div>
         <div>
             <li>1. - Press 'Open' to open the websocket connection.</li>
             <li>2. - Enter url like: 'http://apple.com' and name like 'apple'</li>
-            <li>3. - Press 'Send' to create a new actor that fetches the url once every minute.</li>
+            <li>3. - Press 'Add' to create a new actor that fetches the url once every minute.</li>
             <li>4. - Press 'Close' to close the Websocket connection.</li>
         </div>
         <hr/>
@@ -36,6 +37,8 @@
 
             var webSocket;
             var messages = document.getElementById("messages");
+            var messagename = document.getElementById("messagename");
+            var messageurl = document.getElementById("messageurl");
 
 
             function openSocket(){
@@ -72,15 +75,19 @@
             /**
              * Sends the value of the text input to the server
              */
-            function send(){
-                var name = document.getElementById("messagename").value;
-                var text = document.getElementById("messageurl").value;
-                var json = '{"name" : "' + name   +   '", "url" : "' + text + '"}'
+            function add(){
+                var json = '{"name" : "' + messagename.value   +   '", "url" : "' + messageurl.value + '"}'
                 webSocket.send(json);
+                messagename.value="";
+                messageurl.value="";
             }
 
             function closeSocket(){
                 webSocket.close();
+            }
+
+            function clearList(){
+                messages.innerHTML = "";
             }
 
             function writeResponse(text){

@@ -68,8 +68,10 @@ abstract class BaseAutoShutdownActor extends Actor with DiagnosticActorLogging {
     countMessagesSinceSnapshot+=1
   }
 
-  def hasSubscribers = {
+  def hasSubscribers: Boolean = {
+    // Test to let actors become dormant when they have subscribers.
     !subscribers.isEmpty
+    //false
   }
   def receive : Receive = {
 

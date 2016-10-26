@@ -1,9 +1,10 @@
 package actors.massive.web
 
-import actors.massive.base.{ShutDownTime, UnSubscribe, Subscribe}
-import actors.massive.url.{Url, URLPersistentLookupActor}
+import actors.massive.base.{ShutDownTime, Subscribe, UnSubscribe}
+import actors.massive.url.{URLPersistentLookupActor, Url}
 import akka.actor._
-import controllers.{OutEvent, InEvent}
+import controllers.{InEvent, OutEvent}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 
@@ -18,19 +19,21 @@ object MyWebSocketActor {
 
 class MyWebSocketActor(out: ActorRef, lookupActor : ActorRef, var subscribeOnActorName : String) extends Actor {
 
+  val subscriptions = collection.mutable.Set[String]()
+
   override def aroundPreStart(): Unit = {
     context.system.scheduler.schedule(100 millisecond,10 second, self, "Hi there again!!!")
-    // Subscribe
-    val subscribe = Subscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_ALL_SUBSCRIPTION, context.self)
-    lookupActor ! subscribe
-    lookupActor ! ShutDownTime(subscribeOnActorName, 5 seconds)
   }
 
   override def aroundPostStop(): Unit = {
     // UnSubscribe
     System.out.println(s"UnSubscribe called!")
-    val unSubscribe = UnSubscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_ALL_SUBSCRIPTION, context.self)
-    lookupActor ! unSubscribe
+
+    def unsubscribeExtraSubscription(name: String): Unit = {
+      val unSubscribe = UnSubscribe(name, URLPersistentLookupActor.TOPIC_ALL_SUBSCRIPTION, context.self)
+      lookupActor ! unSubscribe
+    }
+    subscriptions.map(unsubscribeExtraSubscription)
   }
 
   def receive = {
@@ -39,18 +42,16 @@ class MyWebSocketActor(out: ActorRef, lookupActor : ActorRef, var subscribeOnAct
       out ! OutEvent("I received your message: " +  msg)
     case in : InEvent =>
       System.out.println(s"Received msg InEvent: $in")
-      out ! OutEvent(in.url)
-          // unsubscribe on old subscription
-          val unSubscribe = UnSubscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_ALL_SUBSCRIPTION, context.self)
-          lookupActor ! unSubscribe
-          //
+      out ! OutEvent("=== Subscribing to: "+ in.url)
           // Subscribe new subscription
+          subscriptions.add(in.name)
           subscribeOnActorName = in.name
           val subscribe = Subscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_ALL_SUBSCRIPTION, context.self)
           lookupActor ! subscribe
           val urlMess = Url(subscribeOnActorName, in.url, Some(60 seconds))
           lookupActor ! urlMess
           lookupActor ! ShutDownTime(subscribeOnActorName, 5 seconds)
+
     case out : OutEvent =>
       System.out.println(s"Received msg OutEvent: $out")
   }
