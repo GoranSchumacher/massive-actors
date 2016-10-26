@@ -83,6 +83,6 @@ object DeadLetterTest extends App {
   Thread.sleep(2000)
   (CountMessagesPersistentLookupActor ? CountMessAnswer(entityName)).map { a => println(s"Answer should be +10: $a") }
 
-  Thread.sleep(500000)
+  Thread.sleep(50000)
   system.terminate()
 }

@@ -133,7 +133,7 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
   def url(url : String, min : Long) = Action { implicit request =>
     import scala.concurrent.duration._
     // Url("apple.com", "http://apple.com", Some(1 minutes))
-    val urlMess = Url(s"$url", s"http://$url", Some(min minutes))
+    val urlMess = Url(url, s"http://$url", Some(min minutes))
     urlLookupActor ! urlMess
     Ok(views.html.url_actor(url))
   }
