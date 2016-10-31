@@ -2,7 +2,7 @@ package actors.massive.url
 
 import java.util.concurrent.TimeUnit
 
-import actors.massive.base.BaseLookupActor
+import actors.massive.base.{BaseAutoShutdownActor, BaseLookupActor}
 import actors.massive.stock.{GetStock, SumStock}
 import akka.actor.Props
 import akka.event.LoggingReceive
@@ -20,7 +20,7 @@ object URLPersistentLookupActor {
   //lazy val system = ActorSystem("example") // TODO This is not the same actorsystem as the Play actor system
   //lazy val lookupActor = system.actorOf(Props[URLPersistentLookupActor], "URLPersistentLookupActor")
 
-   val TOPIC_ALL_SUBSCRIPTION = 0         // ALL subscriptions
+   //TOPIC_ALL_SUBSCRIPTION is defined in object BaseAutoShutdownActor.
    val TOPIC_SUBSCRIPTION_URL_CALLED = 1  // THe url is called
    val TOPIC_SUBSCRIPTION_LENGTH = 2      // Length changed on url content
 

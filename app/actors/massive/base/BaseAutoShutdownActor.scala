@@ -35,6 +35,10 @@ case class ShutDown(ref : ActorRef)
 case class Subscribe(override val name : String = "EMPTY", topic : Int, subscriber : ActorRef) extends LookupActorName
 case class UnSubscribe(override val name : String = "EMPTY", topic : Int, subscriber : ActorRef) extends LookupActorName
 
+object BaseAutoShutdownActor {
+  val TOPIC_ALL_SUBSCRIPTION = 0 // ALL subscriptions
+}
+
 abstract class BaseAutoShutdownActor extends Actor with DiagnosticActorLogging {
 
   var domain : String
@@ -54,7 +58,8 @@ abstract class BaseAutoShutdownActor extends Actor with DiagnosticActorLogging {
   def notifySubscribers(topic : Int, message : Any) = {
     System.out.println(s"In notifySubscribers $subscribers")
     subscribers.map{ s =>
-      if(s._2.contains(topic) || s._2.contains(0)) {
+      if(s._2.contains(topic) || s._2.contains(BaseAutoShutdownActor.TOPIC_ALL_SUBSCRIPTION)) {
+        // Contains topic or
         System.out.println(s"notifySubscribersInt:  subscriber: ${s}")
         s._1 ! message
       }
@@ -115,23 +120,35 @@ abstract class BaseAutoShutdownActor extends Actor with DiagnosticActorLogging {
 
     case subscribe : Subscribe => {
       System.out.println(s"Subscribe:  subscriber: ${subscribe.subscriber}")
-      val x = subscribers.get(subscribe.subscriber)
-      val x2 = x.getOrElse(scala.collection.mutable.Set[Int]())
-      x2.add(subscribe.topic)
-      subscribers.put(subscribe.subscriber, x2)
+//      val x = subscribers.get(subscribe.subscriber)
+//      val x2 = x.getOrElse(scala.collection.mutable.Set[Int]())
+//      x2.add(subscribe.topic)
+//      subscribers.put(subscribe.subscriber, x2)
+      lazy val innerSet = subscribers.get(subscribe.subscriber).getOrElse(scala.collection.mutable.Set[Int]())
+      innerSet.add(subscribe.topic)
+      subscribers.put(subscribe.subscriber, innerSet)
       messageHandled()
     }
 
     case unSubscribe : UnSubscribe => {
       System.out.println(s"UnSubscribe:  subscriber: ${unSubscribe.subscriber}")
-      val x = subscribers.get(unSubscribe.subscriber)
-      val x2 = x.getOrElse(scala.collection.mutable.Set[Int]())
-      x2.remove(unSubscribe.topic)
-      if(x2.size == 0) {
+//      val x: Option[scala.collection.mutable.Set[Int]] = subscribers.get(unSubscribe.subscriber)
+//      val x2 = x.getOrElse(scala.collection.mutable.Set[Int]())
+//
+//      x2.remove(unSubscribe.topic)
+//      if(x2.size == 0) {
+//        // The inner set is empty => also remove outer set
+//        subscribers.remove(unSubscribe.subscriber)
+//      } else {
+//        subscribers.put(unSubscribe.subscriber, x2)
+//      }
+      lazy val innerSet = subscribers.get(unSubscribe.subscriber).getOrElse(scala.collection.mutable.Set[Int]())
+      innerSet.remove(unSubscribe.topic)
+      if(innerSet.size == 0)
         subscribers.remove(unSubscribe.subscriber)
-      } else {
-        subscribers.put(unSubscribe.subscriber, x2)
-      }
+      else
+        subscribers.put(unSubscribe.subscriber, innerSet)
+
       messageHandled()
     }
   }

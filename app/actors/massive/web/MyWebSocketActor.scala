@@ -1,6 +1,6 @@
 package actors.massive.web
 
-import actors.massive.base.{ShutDownTime, Subscribe, UnSubscribe}
+import actors.massive.base.{BaseAutoShutdownActor, ShutDownTime, Subscribe, UnSubscribe}
 import actors.massive.url.{URLPersistentLookupActor, Url}
 import akka.actor._
 import controllers.{InEvent, OutEvent}
@@ -30,7 +30,7 @@ class MyWebSocketActor(out: ActorRef, lookupActor : ActorRef, var subscribeOnAct
     System.out.println(s"UnSubscribe called!")
 
     def unsubscribeExtraSubscription(name: String): Unit = {
-      val unSubscribe = UnSubscribe(name, URLPersistentLookupActor.TOPIC_ALL_SUBSCRIPTION, context.self)
+      val unSubscribe = UnSubscribe(name, BaseAutoShutdownActor.TOPIC_ALL_SUBSCRIPTION, context.self)
       lookupActor ! unSubscribe
     }
     subscriptions.map(unsubscribeExtraSubscription)
@@ -46,7 +46,7 @@ class MyWebSocketActor(out: ActorRef, lookupActor : ActorRef, var subscribeOnAct
           // Subscribe new subscription
           subscriptions.add(in.name)
           subscribeOnActorName = in.name
-          val subscribe = Subscribe(subscribeOnActorName, URLPersistentLookupActor.TOPIC_ALL_SUBSCRIPTION, context.self)
+          val subscribe = Subscribe(subscribeOnActorName, BaseAutoShutdownActor.TOPIC_ALL_SUBSCRIPTION, context.self)
           lookupActor ! subscribe
       if(in.url!="") {
         val urlMess = Url(subscribeOnActorName, in.url, Some(60 seconds))
