@@ -69,15 +69,11 @@ class URLPersistentActor extends BasePersistentAutoShutdownActor {
     // Here we notify listening actors through our own notifiaction mecanism
     notifySubscribers(URLPersistentLookupActor.TOPIC_SUBSCRIPTION_URL_CALLED, (s"Notify.Url_Called Url: ${updatedEvent.url}, Size: ${updatedEvent.dataLength} OldSize: ${state.event.dataLength}"))
 
-    // Here we set the timer for driving the repetition.
-    if(!notifyEnabled) {
-      System.out.println(s"schedule: repeat:  ${updatedEvent.repeat.get} URL: ${updatedEvent.url}")
-      context.system.scheduler.schedule(updatedEvent.repeat.get, updatedEvent.repeat.get, self, updatedEvent)
-      notifyEnabled = true
-    }
-
     // Here we set the new state
     state = MyState(updatedEvent)
+
+    // Here we set the timer for driving the repetition.
+    startRecurringNotification
 
     // Persist url and content to Elastic search
     persistElasticsearch()
@@ -127,6 +123,7 @@ class URLPersistentActor extends BasePersistentAutoShutdownActor {
     case SnapshotOffer(metadata: SnapshotMetadata, snapshot: MyState) =>
       log.debug("Got snapshot id: " + metadata.sequenceNr)
       state = snapshot
+      startRecurringNotification
   }
 
   override val receiveCommand: Receive = super[BasePersistentAutoShutdownActor].receiveShutDown orElse {
@@ -143,5 +140,13 @@ class URLPersistentActor extends BasePersistentAutoShutdownActor {
     }
 
     case mess  => System.out.println(s"(URLPersistentActor): MESSAGE NOT MATCHED: $mess Sender: $sender")
+  }
+
+  private def startRecurringNotification: Unit = {
+    if(!notifyEnabled) {
+      System.out.println(s"schedule: repeat:  ${state.event.repeat.get} URL: ${state.event.url}")
+      context.system.scheduler.schedule(state.event.repeat.get, state.event.repeat.get, self, state.event)
+    }
+    notifyEnabled = true
   }
 }
