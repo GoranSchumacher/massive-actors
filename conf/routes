@@ -12,17 +12,12 @@ GET         /socket                                   controllers.Chat.socket
 GET         /startActor                               controllers.ActorController.startActor
 GET         /test                                     controllers.ActorController.test
 
+GET         /urlget/:link                             controllers.ActorController.urlGet(link)
+
 ### Url
 GET         /url/:link/:minutes                       controllers.ActorController.url(link, minutes : Long)
 GET         /urlEmptyForm                             controllers.ActorController.urlEmptyForm
 GET         /urlActorSocket/:urlName                  controllers.ActorController.urlActorSocket(urlName)
-
-GET         /urlget/:link                             controllers.ActorController.urlGet(link)
-
-### UrlMulti
-GET         /urlMulti/:link/:minutes                  controllers.ActorController.urlMulti(link, minutes : Long)
-GET         /urlEmptyFormMulti                        controllers.ActorController.urlEmptyFormMulti
-GET         /urlActorSocketMulti/:urlName             controllers.ActorController.urlActorSocketMulti(urlName)
 
 GET         /urlPDF/:link                             controllers.ActorController.urlPDF(link)
 GET         /urlToPDF                                 controllers.ActorController.urlGetToPDF(link)

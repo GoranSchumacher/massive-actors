@@ -128,6 +128,24 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
     Ok("OK")
   }
 
+  def urlGet(url : String) = Action.async { implicit request =>
+    import com.sksamuel.elastic4s.ElasticDsl._
+    import com.sksamuel.elastic4s.jackson.ElasticJackson
+    import ElasticJackson.Implicits._
+
+    val future  =
+      esClient.execute {
+        search in "actor"->"URLPersistentActor" query {
+          bool {
+            must(
+              termQuery("_id", url)
+            )
+          }
+        }
+      }
+    future.map{t => Ok(t.as[actors.massive.url.MyState].apply(0).event.data).as("text/html")}
+  }
+
   /////////////////////////////////////
   //////////////// URL ////////////////
   /////////////////////////////////////
@@ -143,57 +161,6 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
     Ok(views.html.url_actor("empty"))
   }
 
-  def urlGet(url : String) = Action.async { implicit request =>
-    import com.sksamuel.elastic4s.ElasticDsl._
-    import com.sksamuel.elastic4s.jackson.ElasticJackson
-    import ElasticJackson.Implicits._
-
-    val future  =
-    esClient.execute {
-      search in "actor"->"URLPersistentActor" query {
-        bool {
-          must(
-            termQuery("_id", url)
-          )
-        }
-      }
-    }
-    future.map{t => Ok(t.as[actors.massive.url.MyState].apply(0).event.data).as("text/html")}
-  }
-
-  import play.api.libs.json._
-
-  implicit val inEventFormat = Json.format[InEvent]
-  implicit val outEventFormat = Json.format[OutEvent]
-
-  import play.api.mvc.WebSocket.FrameFormatter
-
-  implicit val inEventFrameFormatter = FrameFormatter.jsonFrame[InEvent]
-  implicit val outEventFrameFormatter = FrameFormatter.jsonFrame[OutEvent]
-
-  import play.api.mvc._
-  import play.api.Play.current
-  def urlActorSocket(urlName : String) = WebSocket.acceptWithActor[InEvent, OutEvent] { request => out =>
-    System.out.println(s"ActorController.urlActorSocket called urlName: $urlName")
-    MyWebSocketActor.props(out, urlLookupActor, urlName)
-  }
-
-
-  /////////////////////////////////////
-  //////////////// URLMulti ///////////
-  /////////////////////////////////////
-  def urlMulti(url : String, min : Long) = Action { implicit request =>
-    import scala.concurrent.duration._
-    // Url("apple.com", "http://apple.com", Some(1 minutes))
-    val urlMess = Url(url, s"http://$url", Some(min minutes))
-    urlLookupActor ! urlMess
-    Ok(views.html.url_actor_multi(url))
-  }
-
-  def urlEmptyFormMulti = Action { implicit request =>
-    Ok(views.html.url_actor_multi("empty"))
-  }
-
   import play.api.libs.json._
 
   implicit val multiInEventFormat = Json.format[MultiInEvent]
@@ -206,9 +173,9 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
 
   import play.api.mvc._
   import play.api.Play.current
-  def urlActorSocketMulti(urlName : String) = WebSocket.acceptWithActor[MultiInEvent, MultiOutEvent] { request => out =>
+  def urlActorSocket(urlName : String) = WebSocket.acceptWithActor[MultiInEvent, MultiOutEvent] { request => out =>
     System.out.println(s"ActorController.urlActorSocketMulti called urlName: $urlName")
-    UrlMultiWebSocketActor.props(out, urlLookupActor, urlName)
+    UrlWebSocketActor.props(out, urlLookupActor, urlName)
   }
 
 

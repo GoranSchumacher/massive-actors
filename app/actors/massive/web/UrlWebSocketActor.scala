@@ -15,12 +15,12 @@ import scala.concurrent.duration._
 case class MultiInEvent(name : String, url : String)
 case class MultiOutEvent(name : String, data : String)
 
-object UrlMultiWebSocketActor {
+object UrlWebSocketActor {
 
-  def props(out: ActorRef, lookupActor : ActorRef, subscribeOnActorName : String) = Props(new UrlMultiWebSocketActor(out, lookupActor, subscribeOnActorName))
+  def props(out: ActorRef, lookupActor : ActorRef, subscribeOnActorName : String) = Props(new UrlWebSocketActor(out, lookupActor, subscribeOnActorName))
 }
 
-class UrlMultiWebSocketActor(out: ActorRef, lookupActor : ActorRef, var subscribeOnActorName : String) extends Actor {
+class UrlWebSocketActor(out: ActorRef, lookupActor : ActorRef, var subscribeOnActorName : String) extends Actor {
 
   val subscriptions = collection.mutable.Set[String]()
 
@@ -59,8 +59,5 @@ class UrlMultiWebSocketActor(out: ActorRef, lookupActor : ActorRef, var subscrib
         lookupActor ! urlMess
         lookupActor ! ShutDownTime(subscribeOnActorName, 5 seconds)
       }
-
-    case out : OutEvent =>
-      System.out.println(s"Multi Received msg OutEvent: $out")
   }
 }
