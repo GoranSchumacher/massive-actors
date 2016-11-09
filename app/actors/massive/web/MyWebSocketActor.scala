@@ -3,7 +3,6 @@ package actors.massive.web
 import actors.massive.base.{BaseAutoShutdownActor, ShutDownTime, Subscribe, UnSubscribe}
 import actors.massive.url.{URLPersistentLookupActor, Url}
 import akka.actor._
-import controllers.{InEvent, OutEvent}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
@@ -12,6 +11,10 @@ import scala.concurrent.duration._
  * @author Gøran Schumacher (GS) / Schumacher Consulting Aps
  * @version $Revision$ 09/02/2016
  */
+
+case class InEvent(name : String, url : String)
+case class OutEvent(data : String)
+
 object MyWebSocketActor {
 
   def props(out: ActorRef, lookupActor : ActorRef, subscribeOnActorName : String) = Props(new MyWebSocketActor(out, lookupActor, subscribeOnActorName))

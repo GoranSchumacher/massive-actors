@@ -3,26 +3,39 @@
 # ~~~~
 
 # Home page
-GET         /                               controllers.Chat.index
-POST        /nickname                       controllers.Chat.nickname
-POST        /leave                          controllers.Chat.leave
-GET         /chat                           controllers.Chat.chat
-GET         /socket                         controllers.Chat.socket
+GET         /                                         controllers.Chat.index
+POST        /nickname                                 controllers.Chat.nickname
+POST        /leave                                    controllers.Chat.leave
+GET         /chat                                     controllers.Chat.chat
+GET         /socket                                   controllers.Chat.socket
 
-GET         /startActor                     controllers.ActorController.startActor
-GET         /test                           controllers.ActorController.test
-GET         /url/:link/:minutes             controllers.ActorController.url(link, minutes : Long)
-GET         /urlEmptyForm                   controllers.ActorController.urlEmptyForm
-GET         /urlget/:link                   controllers.ActorController.urlGet(link)
-GET         /urlPDF/:link                   controllers.ActorController.urlPDF(link)
-GET         /urlToPDF                       controllers.ActorController.urlGetToPDF(link)
-GET         /urlActorSocket/:urlName        controllers.ActorController.urlActorSocket(urlName)
+GET         /startActor                               controllers.ActorController.startActor
+GET         /test                                     controllers.ActorController.test
+
+### Url
+GET         /url/:link/:minutes                       controllers.ActorController.url(link, minutes : Long)
+GET         /urlEmptyForm                             controllers.ActorController.urlEmptyForm
+GET         /urlActorSocket/:urlName                  controllers.ActorController.urlActorSocket(urlName)
+
+GET         /urlget/:link                             controllers.ActorController.urlGet(link)
+
+### UrlMulti
+GET         /urlMulti/:link/:minutes                  controllers.ActorController.urlMulti(link, minutes : Long)
+GET         /urlEmptyFormMulti                        controllers.ActorController.urlEmptyFormMulti
+GET         /urlActorSocketMulti/:urlName             controllers.ActorController.urlActorSocketMulti(urlName)
+
+GET         /urlPDF/:link                             controllers.ActorController.urlPDF(link)
+GET         /urlToPDF                                 controllers.ActorController.urlGetToPDF(link)
 
 # React Example
-GET         /reactIndex                     controllers.ReactController.reactIndex
-GET         /comments                       controllers.ReactController.comments
-POST        /comment                        controllers.ReactController.comment(author, text)
+GET         /reactIndex                               controllers.ReactController.reactIndex
+GET         /comments                                 controllers.ReactController.comments
+POST        /comment                                  controllers.ReactController.comment(author, text)
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                   controllers.Assets.versioned(path="/public", file: Asset)
-GET         /webjars/*file                  controllers.WebJarAssets.at(file)
+GET         /assets/*file                             controllers.Assets.versioned(path="/public", file: Asset)
+GET         /webjars/*file                            controllers.WebJarAssets.at(file)
+
+## ConnectedCars
+GET         /connectedCars/getAttributes/:name        controllers.ConnectedCarsController.getAttributes(name)
+POST        /connectedCars/collector                  controllers.ConnectedCarsController.collector

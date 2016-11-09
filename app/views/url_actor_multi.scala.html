@@ -1,0 +1,134 @@
+@(urlName: String)(implicit request: play.api.mvc.RequestHeader, flash: Flash)
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>@urlName</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+    </head>
+    <body>
+
+        <div>
+            Name:
+            <input type="text" id="messagename"/>
+        </div>
+        <div>
+            Url:
+            <input type="text" id="messageurl" size=50/>
+        </div>
+        <div>
+            <button type="button" onclick="openSocket();" >Open</button>
+            <button type="button" onclick="add();" >Add</button>
+            <button type="button" onclick="closeSocket();" >Close</button>
+            <button type="button" onclick="clearList();" >Clear</button>
+        </div>
+        <div>
+            <li>1. - Press 'Open' to open the websocket connection.</li>
+            <li>2. - Enter url like: 'http://apple.com' and name like 'apple'</li>
+            <li>3. - Press 'Add' to create a new actor that fetches the url once every minute.</li>
+            <li>4. - Press 'Close' to close the Websocket connection.</li>
+        </div>
+        <hr/>
+            <!-- Server responses get written here -->
+        <div id="messages">
+            <div id="messageForUrl-None"/>
+        </div>
+
+            <!-- Script to utilise the WebSocket -->
+        <script type="text/javascript">
+
+            var webSocket;
+            var messages = document.getElementById("messages");
+            var generalMessages = document.getElementById("messageForUrl-None");
+            var messagename = document.getElementById("messagename");
+            var messageurl = document.getElementById("messageurl");
+
+            var urlList = ["None"]
+
+
+            function openSocket(){
+                // Ensures only one connection is open at a time
+                if(webSocket !== undefined && webSocket.readyState !== WebSocket.CLOSED){
+                   writeResponse("WebSocket is already opened.");
+                    return;
+                }
+                // Create a new instance of the websocket
+                webSocket = new WebSocket("ws://localhost:9000/urlActorSocketMulti/@urlName");
+
+                /**
+                 * Binds functions to the listeners for the websocket.
+                 */
+                webSocket.onopen = function(event){
+                    // For reasons I can't determine, onopen gets called twice
+                    // and the first time event.data is undefined.
+                    // Leave a comment if you know the answer.
+                    if(event.data === undefined)
+                        return;
+
+                    writeResponseMulti(event.data);
+                };
+
+                webSocket.onmessage = function(event){
+                    writeResponseMulti(event.data);
+                };
+
+                webSocket.onclose = function(event){
+                    writeResponse("Connection closed");
+                };
+            }
+
+            /**
+             * Sends the value of the text input to the server
+             */
+            function add(){
+                var json = '{"name" : "' + messagename.value   +   '", "url" : "' + messageurl.value + '"}'
+
+                var innerDiv = document.createElement("div");
+                innerDiv.setAttribute("style", "color:black;font-weight:normal;")
+                innerDiv.id="messageForUrl-"+messagename.value
+                var legend = document.createElement("legend");
+                legend.setAttribute("style", "color:blue;font-weight:bold;")
+                legend.innerHTML=messagename.value
+                legend.appendChild(innerDiv)
+                var fieldSet = document.createElement("fieldset");
+                fieldSet.appendChild(legend)
+                var newDiv = document.createElement("div");
+                newDiv.setAttribute("width", 1000)
+                newDiv.setAttribute("height", 200)
+                newDiv.appendChild(fieldSet)
+                messages.appendChild(newDiv)
+                urlList.push(messagename.value)
+                webSocket.send(json);
+                messagename.value="";
+                messageurl.value="";
+            }
+
+            function closeSocket(){
+                webSocket.close();
+            }
+
+            function clearList(){
+            urlList.map(p=> {
+                document.getElementById("messageForUrl-"+p).innerHTML="";
+                 }
+                )
+            }
+
+            function writeResponse(text){
+                generalMessages.innerHTML = text + "<br/>" + messages.innerHTML;
+            }
+
+            function writeResponseMulti(text){
+                json = JSON.parse(text)
+                if(json.name=="None") {
+                    generalMessages.innerHTML = json.data + "<br/>" + generalMessages.innerHTML;
+                } else {
+                    child = document.getElementById("messageForUrl-"+json.name)
+                    child.innerHTML = json.data + "<br/>" + child.innerHTML
+                }
+            }
+
+        </script>
+
+    </body>
+</html>

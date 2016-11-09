@@ -10,7 +10,7 @@ import actors.massive.base.{LookupActorName, ShutDownTime}
 import actors.massive.stock.{StockLookupActor, GetStock, AddStock}
 import actors.massive.stringtest.{Cmd, StringTestPersistentLookupActor}
 import actors.massive.url.{Url, Print, URLPersistentLookupActor}
-import actors.massive.web.MyWebSocketActor
+import actors.massive.web._
 import actors.stateless.{HTMLCleanerURL, PDFRenderActor, HTMLCleanerActor}
 import actors.traits.RouteSlipMessage
 import akka.util.Timeout
@@ -30,8 +30,6 @@ import scala.util.{Failure, Success}
  * @version $Revision$ 31/01/2016
  */
 
-case class InEvent(name : String, url : String)
-case class OutEvent(data : String)
 
 class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSystem) extends Controller {
 
@@ -130,6 +128,9 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
     Ok("OK")
   }
 
+  /////////////////////////////////////
+  //////////////// URL ////////////////
+  /////////////////////////////////////
   def url(url : String, min : Long) = Action { implicit request =>
     import scala.concurrent.duration._
     // Url("apple.com", "http://apple.com", Some(1 minutes))
@@ -160,7 +161,60 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
     future.map{t => Ok(t.as[actors.massive.url.MyState].apply(0).event.data).as("text/html")}
   }
 
+  import play.api.libs.json._
 
+  implicit val inEventFormat = Json.format[InEvent]
+  implicit val outEventFormat = Json.format[OutEvent]
+
+  import play.api.mvc.WebSocket.FrameFormatter
+
+  implicit val inEventFrameFormatter = FrameFormatter.jsonFrame[InEvent]
+  implicit val outEventFrameFormatter = FrameFormatter.jsonFrame[OutEvent]
+
+  import play.api.mvc._
+  import play.api.Play.current
+  def urlActorSocket(urlName : String) = WebSocket.acceptWithActor[InEvent, OutEvent] { request => out =>
+    System.out.println(s"ActorController.urlActorSocket called urlName: $urlName")
+    MyWebSocketActor.props(out, urlLookupActor, urlName)
+  }
+
+
+  /////////////////////////////////////
+  //////////////// URLMulti ///////////
+  /////////////////////////////////////
+  def urlMulti(url : String, min : Long) = Action { implicit request =>
+    import scala.concurrent.duration._
+    // Url("apple.com", "http://apple.com", Some(1 minutes))
+    val urlMess = Url(url, s"http://$url", Some(min minutes))
+    urlLookupActor ! urlMess
+    Ok(views.html.url_actor_multi(url))
+  }
+
+  def urlEmptyFormMulti = Action { implicit request =>
+    Ok(views.html.url_actor_multi("empty"))
+  }
+
+  import play.api.libs.json._
+
+  implicit val multiInEventFormat = Json.format[MultiInEvent]
+  implicit val multiOutEventFormat = Json.format[MultiOutEvent]
+
+  import play.api.mvc.WebSocket.FrameFormatter
+
+  implicit val multiInEventFrameFormatter = FrameFormatter.jsonFrame[MultiInEvent]
+  implicit val multiOutEventFrameFormatter = FrameFormatter.jsonFrame[MultiOutEvent]
+
+  import play.api.mvc._
+  import play.api.Play.current
+  def urlActorSocketMulti(urlName : String) = WebSocket.acceptWithActor[MultiInEvent, MultiOutEvent] { request => out =>
+    System.out.println(s"ActorController.urlActorSocketMulti called urlName: $urlName")
+    UrlMultiWebSocketActor.props(out, urlLookupActor, urlName)
+  }
+
+
+  /////////////////////////////////////
+  //////////////// URLPDF ///////////
+  /////////////////////////////////////
   def urlGetToPDF(url : String) = Action.async { implicit request =>
     val aHTMLCleanerURL = HTMLCleanerURL(url)
     val routeSlipMessage = RouteSlipMessage(Seq(PDFRenderActor), aHTMLCleanerURL, true)
@@ -192,24 +246,6 @@ class ActorController @Inject()(val messagesApi: MessagesApi, system: ActorSyste
     dbResponse.map{case a:Url=> ask(PDFRenderActor, HTMLCleanerURL(a.url, Some(a.data)))}.map{case a: HTMLCleanerURL =>
       Ok(a.byteArray.get).as("application/pdf")
     }
-  }
-
-  import play.api.libs.json._
-
-  implicit val inEventFormat = Json.format[InEvent]
-  implicit val outEventFormat = Json.format[OutEvent]
-
-  import play.api.mvc.WebSocket.FrameFormatter
-
-  implicit val inEventFrameFormatter = FrameFormatter.jsonFrame[InEvent]
-  implicit val outEventFrameFormatter = FrameFormatter.jsonFrame[OutEvent]
-
-  import play.api.mvc._
-  import play.api.Play.current
-  def urlActorSocket(urlName : String) = WebSocket.acceptWithActor[InEvent, OutEvent] { request => out =>
-    System.out.println(s"ActorController.urlActorSocket called urlName: $urlName")
-
-    MyWebSocketActor.props(out, urlLookupActor, urlName)
   }
 
 }

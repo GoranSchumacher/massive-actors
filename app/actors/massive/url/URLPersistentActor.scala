@@ -4,6 +4,7 @@ import java.util.Date
 
 import actors.UserSocket.ChatMessage
 import actors.massive.base._
+import actors.massive.web.MultiOutEvent
 import actors.stateless.{HTMLCleanerActor, HTMLCleanerURL}
 import akka.actor.Props
 import akka.cluster.pubsub.DistributedPubSubMediator.Publish
@@ -63,11 +64,15 @@ class URLPersistentActor extends BasePersistentAutoShutdownActor {
       // Only called if the length has changed.
       mediator ! Publish(topic, ChatMessage("1", s"updateState.Length_Changed called for actor ${context.self.path.name}, Value different: ${updatedEvent.dataLength}"))
       // Here we notify listening actors through our own notifiaction mecanism
-      notifySubscribers(URLPersistentLookupActor.TOPIC_SUBSCRIPTION_LENGTH, (s"Notify.Length_Changed. Url: ${updatedEvent.url}, Size: ${updatedEvent.dataLength} OldSize: ${state.event.dataLength}"))
+      //TODO: If Multi, we need to add name to the message
+      //notifySubscribers(URLPersistentLookupActor.TOPIC_SUBSCRIPTION_LENGTH, (s"Notify.Length_Changed. Url: ${updatedEvent.url}, Size: ${updatedEvent.dataLength} OldSize: ${state.event.dataLength}"))
+      notifySubscribers(URLPersistentLookupActor.TOPIC_SUBSCRIPTION_LENGTH, MultiOutEvent(event.name, (s"Notify.Length_Changed. Url: ${updatedEvent.url}, Size: ${updatedEvent.dataLength} OldSize: ${state.event.dataLength}")))
     }
     mediator ! Publish(topic, ChatMessage("1", s"updateState.Url_Called called for actor ${context.self.path.name}, Value: ${updatedEvent.dataLength}"))
     // Here we notify listening actors through our own notifiaction mecanism
-    notifySubscribers(URLPersistentLookupActor.TOPIC_SUBSCRIPTION_URL_CALLED, (s"Notify.Url_Called Url: ${updatedEvent.url}, Size: ${updatedEvent.dataLength} OldSize: ${state.event.dataLength}"))
+    //TODO: If Multi, we need to add name to the message
+    //notifySubscribers(URLPersistentLookupActor.TOPIC_SUBSCRIPTION_URL_CALLED, (s"Notify.Url_Called Url: ${updatedEvent.url}, Size: ${updatedEvent.dataLength} OldSize: ${state.event.dataLength}"))
+    notifySubscribers(URLPersistentLookupActor.TOPIC_SUBSCRIPTION_URL_CALLED, MultiOutEvent(event.name, (s"Notify.Url_Called Url: ${updatedEvent.url}, Size: ${updatedEvent.dataLength} OldSize: ${state.event.dataLength}")))
 
     // Here we set the new state
     state = MyState(updatedEvent)
